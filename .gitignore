@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+setx
 
 # Distribution / packaging
 .Python
@@ -205,3 +206,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+.jupyter_runtime/
+jupyter_runtime/
+%USERPROFILE%/
+.vscode/mcp.json
+

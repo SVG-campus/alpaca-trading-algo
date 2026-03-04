@@ -1,0 +1,80 @@
+# ==============================================================================
+# 🧬 TITAN SINGULARITY: THE SEQUENTIAL PROMPT GENERATOR
+# ==============================================================================
+# Run this script to generate the exact, highly-engineered prompts required to 
+# build Frameworks 9, 6, 7, and 8 in the mathematically optimal order.
+# ==============================================================================
+
+def generate_singularity_prompts():
+    print("="*80)
+    print("🌌 TITAN SINGULARITY: INITIATING BUILD SEQUENCE")
+    print("="*80)
+    
+    # --------------------------------------------------------------------------
+    # STEP 1: THE ORACLE (FRAMEWORK 9)
+    # --------------------------------------------------------------------------
+    prompt_fw9 = """
+    PROMPT 1: BUILDING FRAMEWORK 9 (THE ORACLE)
+    --------------------------------------------------------------------------
+    You are an elite AI Research Architect. We currently possess 5 core frameworks (Physiological Optimization, Causal Intervention, Unified Discovery, Titan Validation, Universal Attribution) plus the Infinity Gradient Boost Engine. 
+    
+    We need to build "Framework 9: Ab-Initio Causal Discovery (The Oracle)". 
+    
+    Goal: Build a Python framework that uses the mathematical rigor of our Infinity Gradient Boost and Titan Validation to perform full PC-Algorithm and LiNGAM (Linear Non-Gaussian Acyclic Model) causal discovery. It must take a totally unknown dataset, find the exact Directed Acyclic Graph (DAG), and output the structural equations without any human domain knowledge.
+    
+    Please write the complete, production-grade Python code for this framework. Use Kaggle standard libraries (networkx, sklearn, xgboost). Ensure it includes a synthetic data generator to prove it works.
+    """
+    
+    # --------------------------------------------------------------------------
+    # STEP 2: THE GRAPH ENGINE (FRAMEWORK 6)
+    # --------------------------------------------------------------------------
+    prompt_fw6 = """
+    PROMPT 2: BUILDING FRAMEWORK 6 (TOPOLOGICAL GRAPH DYNAMICS)
+    --------------------------------------------------------------------------
+    You are an elite AI Research Architect. We now possess our original 5 frameworks, the Infinity Engine, PLUS our newly minted "Framework 9 (The Causal Oracle)".
+    
+    We need to build "Framework 6: Topological & Graph Dynamics Engine". 
+    
+    Goal: Now that Framework 9 can output causal graphs, we need a PyTorch-based Graph Neural Network (GNN) engine to simulate non-Euclidean interventions. Build a production-grade framework using PyTorch Geometric (or standard PyTorch message passing) that ingests a causal graph, applies an intervention to a specific node, and simulates how that shock propagates through the cyclic network using Persistent Homology concepts.
+    
+    Please write the complete Python code. Include a synthetic Kaggle-style graph dataset (like a supply chain or social network) to benchmark its performance.
+    """
+
+    # --------------------------------------------------------------------------
+    # STEP 3: ADVERSARIAL RL (FRAMEWORK 7)
+    # --------------------------------------------------------------------------
+    prompt_fw7 = """
+    PROMPT 3: BUILDING FRAMEWORK 7 (ADVERSARIAL REINFORCEMENT)
+    --------------------------------------------------------------------------
+    You are an elite AI Research Architect. Our arsenal is growing. We now have the base 5 frameworks, Infinity GB, Framework 9 (Causal Oracle), AND Framework 6 (Graph Dynamics).
+    
+    We need to build "Framework 7: Adversarial Reinforcement Framework".
+    
+    Goal: We need to optimize policies in environments where other agents react to us. Using the graph dynamics from Framework 6 and the validation rigor of the Titan framework, build a Multi-Agent Reinforcement Learning (MARL) simulator. Use PyTorch to implement a Proximal Policy Optimization (PPO) loop where two agents compete in a Markov Decision Process (e.g., algorithmic trading or dynamic pricing). It must explicitly solve for the Nash Equilibrium.
+    
+    Please write the complete, production-grade Python code. Include a simulated adversarial environment to prove convergence.
+    """
+
+    # --------------------------------------------------------------------------
+    # STEP 4: CROSS-MODAL ALIGNMENT (FRAMEWORK 8)
+    # --------------------------------------------------------------------------
+    prompt_fw8 = """
+    PROMPT 4: BUILDING FRAMEWORK 8 (CROSS-MODAL CAUSAL ALIGNMENT)
+    --------------------------------------------------------------------------
+    You are an elite AI Research Architect. We have reached the final stage. We possess the original 5 frameworks, Infinity GB, the Causal Oracle (FW9), the Graph Engine (FW6), and the Adversarial RL Engine (FW7).
+    
+    We need to build the final piece: "Framework 8: Cross-Modal Causal Alignment".
+    
+    Goal: We need to ingest unstructured reality. Build a PyTorch framework implementing a Joint-Embedding Predictive Architecture (JEPA) or Contrastive approach. It must take unstructured data (like raw text embeddings or image tensors) and align them into the causal, tabular format our other frameworks understand. It must prove that visual/textual sentiment causally drives numeric outcomes.
+    
+    Please write the complete Python code. Use HuggingFace's `datasets` library to pull a lightweight text or image dataset, extract embeddings, and map them to a synthetic numeric target to prove causality.
+    """
+
+    prompts = [prompt_fw9, prompt_fw6, prompt_fw7, prompt_fw8]
+    
+    for i, p in enumerate(prompts):
+        print(p)
+        print("="*80)
+
+if __name__ == "__main__":
+    generate_singularity_prompts()
