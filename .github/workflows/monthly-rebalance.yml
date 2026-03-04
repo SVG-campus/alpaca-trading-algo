@@ -2,8 +2,8 @@ name: Monthly Alpaca Rebalance
 
 on:
   schedule:
-    # Run at 9:00 AM UTC (4:00 AM EST) on the first day of every month
-    - cron: '0 9 1 * *'
+    # Run at 9:00 AM UTC (4:00 AM EST) every weekday so it can check date conditions
+    - cron: '0 9 * * 1-5'
   workflow_dispatch:
     # Allow manual triggering
 
@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pandas numpy networkx scikit-learn xgboost alpaca-py
+        pip install pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert
 
     - name: Execute Framework 9 Discovery and Monthly Rebalance
       run: |
@@ -37,5 +37,5 @@ jobs:
     - name: Commit execution logs and results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "chore: Automated monthly rebalance execution logs"
+        commit_message: "chore: Automated rebalance execution logs"
         file_pattern: "*.ipynb"
