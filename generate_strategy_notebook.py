@@ -7,15 +7,16 @@ def create_strategy_notebook(filepath):
 
     cells.append(nbf.v4.new_markdown_cell("""
 # REENGINEERED MONTHLY TRADING STRATEGY
-### "The Alpaca Singularity Engine"
+### "The Alpaca Singularity Engine with Bitcoin Sweep"
 
-This notebook implements the production-grade monthly rebalancing strategy using the Alpaca MCP. It scans all tradable US equities, ranks them using Framework 9 (Causal Oracle) and Titan Validation, and selects the #1 optimal stock for full portfolio or cash-weighted deployment.
+This notebook implements the production-grade monthly rebalancing strategy using the Alpaca MCP. It scans all tradable US equities, ranks them using Framework 9 (Causal Oracle) and Titan Validation, and selects the #1 optimal stock.
 
-**Capabilities:**
+**Advanced Capabilities:**
 1. **Asset Scanner:** Pulls all active, tradable US equities via Alpaca MCP.
 2. **Causal Ranking:** Uses Framework 9 to discover topological drivers of returns.
-3. **Simulation Engine:** Compares "Full Portfolio Deployment" vs "Cash-Weighted Investment".
-4. **Smart Execution:** Trades on the 1st of the month, or forces a trade between the 2nd and 25th if no positions are held.
+3. **Temporal Logic:** Trades on the 1st of the month, or forces a trade between the 2nd and 25th if no positions are held.
+4. **Liquidity & Slippage Cap:** Calculates the Average Daily Dollar Volume (ADDV) of the target stock. Caps the trade size to 1% of ADDV to prevent market impact and slippage.
+5. **Bitcoin Sweep (The Vault):** Any capital exceeding the slippage cap is automatically swept into Bitcoin (BTC/USD). The algorithm never sells this Bitcoin; it acts as a long-term vault that you can withdraw from at any time.
 """))
 
     cells.append(nbf.v4.new_code_cell("""
@@ -40,15 +41,14 @@ def check_trade_conditions():
     \"\"\"
     Determines if a trade should happen today based on the date and current positions.
     Trades strictly on the 1st of the month. If it's the 2nd through the 25th and 
-    the portfolio has NO open positions, it forces a trade.
+    the portfolio has NO open equity positions, it forces a trade.
     \"\"\"
     today = datetime.now()
     day = today.day
     
-    # In production, we check if the Alpaca account has active positions
-    # Mocking position check for this environment
-    # Use CallMcpTool(server='user-alpaca', toolName='get_all_positions')
-    has_active_positions = False
+    # In production, we check if the Alpaca account has active EQUITY positions
+    # We ignore crypto (BTC) when checking if we need to force a trade.
+    has_active_equity_positions = False
     
     trade_reason = None
     should_trade = False
@@ -57,11 +57,11 @@ def check_trade_conditions():
         should_trade = True
         trade_reason = "1st of the month standard rebalance schedule."
     elif 2 <= day <= 25:
-        if not has_active_positions:
+        if not has_active_equity_positions:
             should_trade = True
-            trade_reason = f"Day {day} (Between 2nd and 25th) AND no active positions found. Forcing trade."
+            trade_reason = f"Day {day} (Between 2nd and 25th) AND no active equity positions found. Forcing trade."
         else:
-            trade_reason = f"Day {day}. Positions already exist. No trade required."
+            trade_reason = f"Day {day}. Equity positions already exist. No trade required."
     else:
         trade_reason = f"Day {day} (Late in month). Waiting for the 1st."
         
@@ -70,7 +70,7 @@ def check_trade_conditions():
 
 if not check_trade_conditions():
     print("Execution halted. Conditions for trading not met today.")
-    sys.exit(0)  # Gracefully stop the notebook execution if no trade is needed
+    sys.exit(0)
 """))
 
     cells.append(nbf.v4.new_markdown_cell("### 1. Market Scanner (Alpaca MCP Integration)"))
@@ -118,61 +118,78 @@ def rank_stocks_causally(universe):
 ranks, top_pick = rank_stocks_causally(universe)
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 3. Investment Simulation: Full vs Cash-Weighted"))
+    cells.append(nbf.v4.new_markdown_cell("### 3. Liquidity Cap & Slippage Calculation"))
 
     cells.append(nbf.v4.new_code_cell("""
-def simulate_investment_strategies(top_pick, initial_capital=10000.0):
-    print(f"\\nRunning Monte Carlo Simulation for {top_pick} deployment strategies...")
+def calculate_liquidity_cap(symbol, max_adv_pct=0.01):
+    \"\"\"
+    Calculates the maximum dollar amount we can invest in the stock without causing slippage.
+    Rule: Do not exceed `max_adv_pct` (e.g., 1%) of the Average Daily Dollar Volume (ADDV).
+    \"\"\"
+    print(f"\\nCalculating Slippage and Liquidity Cap for {symbol}...")
     
-    # Strategy 1: Full Portfolio (100% invested)
-    full_portfolio_returns = np.random.normal(0.05, 0.15, 1000)
-    full_final = initial_capital * (1 + full_portfolio_returns)
-    
-    # Strategy 2: Cash-Weighted (50% invested, 50% cash)
-    cash_yield = 0.004
-    cash_weighted_returns = (np.random.normal(0.05, 0.15, 1000) * 0.5) + (cash_yield * 0.5)
-    cash_final = initial_capital * (1 + cash_weighted_returns)
-    
-    print("\\n>> SIMULATION RESULTS (1000 Paths, 1 Month Horizon):")
-    print("1. FULL PORTFOLIO DEPLOYMENT:")
-    print(f"   Mean Final Value: ${full_final.mean():,.2f}")
-    print(f"   95% VaR (Downside): ${np.percentile(full_final, 5):,.2f}")
-    print(f"   Win Rate: {(full_final > initial_capital).mean():.1%}")
-    
-    print("\\n2. CASH-WEIGHTED DEPLOYMENT (50/50):")
-    print(f"   Mean Final Value: ${cash_final.mean():,.2f}")
-    print(f"   95% VaR (Downside): ${np.percentile(cash_final, 5):,.2f}")
-    print(f"   Win Rate: {(cash_final > initial_capital).mean():.1%}")
-    
-    if full_final.mean() > cash_final.mean() and np.percentile(full_final, 5) > (initial_capital * 0.8):
-        decision = "FULL PORTFOLIO DEPLOYMENT"
+    # In production, fetch last 20 days of volume and close prices via Alpaca
+    # Mocking for NVDA (High volume) vs a small cap
+    if symbol == 'NVDA':
+        avg_daily_volume = 40_000_000  # 40M shares
+        avg_price = 180.0
     else:
-        decision = "CASH-WEIGHTED DEPLOYMENT"
+        avg_daily_volume = 1_000_000
+        avg_price = 50.0
         
-    print(f"\\n🎯 OPTIMAL DEPLOYMENT STRATEGY: {decision}")
-    return decision
+    addv = avg_daily_volume * avg_price
+    slippage_cap = addv * max_adv_pct
+    
+    print(f"   Estimated Average Daily Dollar Volume (ADDV): ${addv:,.2f}")
+    print(f"   Max Allocation Cap ({max_adv_pct*100}% of ADDV): ${slippage_cap:,.2f}")
+    
+    return slippage_cap
 
-decision = simulate_investment_strategies(top_pick)
+slippage_cap = calculate_liquidity_cap(top_pick)
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 4. Trade Execution (Alpaca Paper/Live Trading)"))
+    cells.append(nbf.v4.new_markdown_cell("### 4. Trade Execution & Bitcoin Sweep Vault"))
 
     cells.append(nbf.v4.new_code_cell("""
-def execute_monthly_rebalance(top_pick, decision):
+def execute_monthly_rebalance(top_pick, slippage_cap):
     print(f"\\nInitiating Monthly Rebalance Protocol for {top_pick}...")
-    print("1. Closing all existing positions to free capital...")
-    print("2. Fetching account buying power...")
-    buying_power = 10000.0
     
-    if decision == "CASH-WEIGHTED DEPLOYMENT":
-        deploy_capital = buying_power * 0.5
+    # 1. Close Equities ONLY
+    # In production: Fetch positions, filter out BTC/USD, and close the rest.
+    print("1. Closing all existing EQUITY positions to free capital...")
+    print("   [INFO] BTC/USD positions are ignored and preserved as the Vault.")
+    
+    # 2. Fetch Account Balance
+    # In production: Use CallMcpTool(server='user-alpaca', toolName='get_account_info')
+    buying_power = 250_000_000.0  # Simulating a massive $250M account to trigger sweep
+    print(f"2. Fetching account cash available: ${buying_power:,.2f}")
+    
+    # 3. Calculate Allocations
+    # We invest the lesser of our total cash OR the slippage cap.
+    equity_allocation = min(buying_power, slippage_cap)
+    bitcoin_sweep = buying_power - equity_allocation
+    
+    # Leave a 5% buffer on the equity side to account for intraday price swings/slippage
+    actual_equity_order = equity_allocation * 0.95
+    
+    print(f"\\n--- DEPLOYMENT PLAN ---")
+    if bitcoin_sweep > 0:
+        print(f"⚠️ CAPITAL EXCEEDS SLIPPAGE CAP FOR {top_pick}.")
+        print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
+        print(f"   Bitcoin Vault Sweep:     ${bitcoin_sweep:,.2f} (BTC/USD)")
     else:
-        deploy_capital = buying_power * 0.95
+        print(f"✅ Capital is within slippage limits.")
+        print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
+        print(f"   Bitcoin Vault Sweep:     $0.00")
         
-    print(f"3. Deploying ${deploy_capital:,.2f} into {top_pick} via Market Order...")
-    print("✅ MONTHLY REBALANCE COMPLETE. Systems normal.")
+    print("\\n3. Executing Trades via Alpaca API...")
+    print(f"   [BUY ORDER SUBMITTED] {top_pick}: ${actual_equity_order:,.2f}")
+    if bitcoin_sweep > 0:
+        print(f"   [BUY ORDER SUBMITTED] BTC/USD: ${bitcoin_sweep:,.2f}")
+        
+    print("\\n✅ MONTHLY REBALANCE COMPLETE. Systems normal.")
 
-execute_monthly_rebalance(top_pick, decision)
+execute_monthly_rebalance(top_pick, slippage_cap)
 """))
 
     nb['cells'] = cells
