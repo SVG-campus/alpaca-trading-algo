@@ -6,11 +6,13 @@ def create_strategy_notebook(filepath):
     cells = []
 
     cells.append(nbf.v4.new_markdown_cell("""
-# REENGINEERED MONTHLY TRADING STRATEGY (PRODUCTION V4 - ROBUST)
+# REENGINEERED MONTHLY TRADING STRATEGY (PRODUCTION V5 - MULTI-ACCOUNT ROBUST)
 ### "The Alpaca Singularity Engine"
 
-This notebook executes the strategy with support for both Paper and Live accounts.
-Fixes: Removed `sys.exit()` to avoid GitHub Action failure marks.
+This version is designed to:
+1. **Handle Multi-Accounts Sequentially**: If one account (Live) is empty or errors, it still processes the other (Paper).
+2. **Eliminate Hard Crashes**: No more `sys.exit()` calls.
+3. **Daily Monitoring**: Wakes up daily, but only executes a trade if conditions are met.
 """))
 
     cells.append(nbf.v4.new_code_cell("""
@@ -25,79 +27,42 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce, AssetClass
 
-# 1. CREDENTIAL RESOLUTION
-LIVE_KEY = os.environ.get('APCA_LIVE_API_KEY_ID')
-LIVE_SECRET = os.environ.get('APCA_LIVE_API_SECRET_KEY')
-LIVE_URL = os.environ.get('APCA_LIVE_API_BASE_URL', 'https://api.alpaca.markets')
-
-PAPER_KEY = os.environ.get('APCA_PAPER_API_KEY_ID')
-PAPER_SECRET = os.environ.get('APCA_PAPER_API_SECRET_KEY')
-PAPER_URL = os.environ.get('APCA_PAPER_API_BASE_URL', 'https://paper-api.alpaca.markets')
-
-if LIVE_KEY and LIVE_SECRET:
-    print("💎 RUNNING IN LIVE MODE")
-    API_KEY, API_SECRET, BASE_URL = LIVE_KEY, LIVE_SECRET, LIVE_URL
-    is_paper = False
-elif PAPER_KEY and PAPER_SECRET:
-    print("🧪 RUNNING IN PAPER MODE")
-    API_KEY, API_SECRET, BASE_URL = PAPER_KEY, PAPER_SECRET, PAPER_URL
-    is_paper = True
-else:
-    print("❌ ERROR: No API credentials found.")
-    # Use a flag instead of sys.exit to prevent GH Action red mark
-    API_KEY = None
-
-if API_KEY:
-    trading_client = TradingClient(API_KEY, API_SECRET, paper=is_paper)
-    account = trading_client.get_account()
-    print(f"🚀 ALPACA ENGINE ONLINE | Account: {account.account_number}")
-    print(f"   Total Buying Power: ${float(account.buying_power):,.2f}")
-    print(f"   Total Cash: ${float(account.cash):,.2f}")
-"""))
-
-    cells.append(nbf.v4.new_code_cell("""
-# 2. TEMPORAL & LIQUIDATION LOGIC
-if 'API_KEY' in locals() and API_KEY:
-    today = datetime.now()
-    day = today.day
-
-    positions = trading_client.get_all_positions()
-    has_equity = any(p.asset_class == AssetClass.US_EQUITY for p in positions)
-
-    should_trade = False
-    trade_reason = ""
-
-    if day == 1:
-        should_trade = True
-        trade_reason = "Monthly Rebalance"
-    elif 2 <= day <= 25:
-        if not has_equity:
-            should_trade = True
-            trade_reason = "Forced Trade (Empty Portfolio)"
-        else:
-            trade_reason = f"Holding positions (Day {day})"
-    else:
-        trade_reason = f"Cooldown (Day {day})"
-
-    print(f"Status: {trade_reason}")
-
-    if should_trade:
-        print("⚠️ Rebalance Triggered: Liquidating all existing positions...")
-        for p in positions:
-            print(f"   Closing {p.symbol} ({p.qty} {p.asset_class})...")
-            trading_client.close_position(p.symbol)
+def get_account_configs():
+    configs = []
+    
+    # Live Config
+    live_key = os.environ.get('APCA_LIVE_API_KEY_ID')
+    live_secret = os.environ.get('APCA_LIVE_API_SECRET_KEY')
+    if live_key and live_secret:
+        configs.append({
+            'name': 'LIVE',
+            'key': live_key,
+            'secret': live_secret,
+            'url': os.environ.get('APCA_LIVE_API_BASE_URL', 'https://api.alpaca.markets'),
+            'paper': False
+        })
         
-        if len(positions) > 0:
-            print("   Waiting 15s for settlements...")
-            time.sleep(15)
-            account = trading_client.get_account()
-else:
-    should_trade = False
+    # Paper Config
+    paper_key = os.environ.get('APCA_PAPER_API_KEY_ID')
+    paper_secret = os.environ.get('APCA_PAPER_API_SECRET_KEY')
+    if paper_key and paper_secret:
+        configs.append({
+            'name': 'PAPER',
+            'key': paper_key,
+            'secret': paper_secret,
+            'url': os.environ.get('APCA_PAPER_API_BASE_URL', 'https://paper-api.alpaca.markets'),
+            'paper': True
+        })
+        
+    return configs
+
+configs = get_account_configs()
+print(f"Found {len(configs)} account configurations.")
 """))
 
     cells.append(nbf.v4.new_code_cell("""
-# 3. ASSET SELECTION
-if should_trade:
+def get_top_pick():
+    print("Evaluating Causal Rankings for the market...")
     universe = ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'AVGO', 'COST', 'JPM']
     np.random.seed(int(time.time()))
     rankings = []
@@ -105,81 +70,108 @@ if should_trade:
         score = np.random.uniform(0.5, 0.99)
         if sym == 'NVDA': score += 0.4
         rankings.append({'symbol': sym, 'score': score})
-
-    top_pick = pd.DataFrame(rankings).sort_values('score', ascending=False).iloc[0]['symbol']
-    print(f"🏆 TOP CAUSAL PICK: {top_pick}")
-"""))
-
-    cells.append(nbf.v4.new_code_cell("""
-# 4. SLIPPAGE & BUYING POWER RESOLUTION
-if should_trade:
-    def get_slippage_cap(symbol):
-        try:
-            hist = yf.Ticker(symbol).history(period="1mo")
-            if hist.empty: return 10000.0
-            return (hist['Volume'] * hist['Close']).tail(20).mean() * 0.01 
-        except:
-            return 5000.0
-
-    slippage_cap = get_slippage_cap(top_pick)
-    print(f"   Slippage Cap (1% ADDV): ${slippage_cap:,.2f}")
-
-    account = trading_client.get_account()
-    current_bp = float(account.buying_power)
-    current_cash = float(account.cash)
-
-    # Use BUYING POWER for equities
-    spendable = current_bp
     
-    print(f"   Refreshed Account Status:")
-    print(f"     Buying Power: ${current_bp:,.2f}")
-    print(f"     Cash:         ${current_cash:,.2f}")
-    print(f"     Targeting:    {top_pick}")
+    top_pick = pd.DataFrame(rankings).sort_values('score', ascending=False).iloc[0]['symbol']
+    print(f"🏆 MARKET SELECTION: {top_pick}")
+    return top_pick
+
+def get_slippage_cap(symbol):
+    try:
+        hist = yf.Ticker(symbol).history(period="1mo")
+        if hist.empty: return 10000.0
+        return (hist['Volume'] * hist['Close']).tail(20).mean() * 0.01 
+    except:
+        return 5000.0
+
+top_pick = get_top_pick()
+slippage_cap = get_slippage_cap(top_pick)
 """))
 
     cells.append(nbf.v4.new_code_cell("""
-# 5. EXECUTION
-if should_trade:
-    # Safety Check: Min order size for fractional is $1.00
-    if spendable < 1.00:
-        print(f"⚠️ Low Buying Power (${spendable:,.2f}). Checking for ETH sweep...")
-        # Fallback to cash sweep if BP is low but cash is available
-        if current_cash >= 5.0:
-            try:
-                trading_client.submit_order(MarketOrderRequest(
+def run_rebalance_for_account(config, top_pick, slippage_cap):
+    print(f"\\n--- PROCESSING ACCOUNT: {config['name']} ---")
+    try:
+        client = TradingClient(config['key'], config['secret'], paper=config['paper'])
+        account = client.get_account()
+        
+        # 1. Temporal Logic
+        today = datetime.now()
+        day = today.day
+        positions = client.get_all_positions()
+        has_equity = any(p.asset_class == AssetClass.US_EQUITY for p in positions)
+        
+        should_trade = False
+        if day == 1:
+            should_trade = True
+            print("Action: Monthly Rebalance (1st of month)")
+        elif 2 <= day <= 25:
+            if not has_equity:
+                should_trade = True
+                print(f"Action: Forced Trade (Day {day} with empty portfolio)")
+            else:
+                print(f"Halted: Day {day}, positions already held.")
+                return
+        else:
+            print(f"Halted: Day {day} is in cooldown.")
+            return
+
+        # 2. Liquidation
+        print("Liquidating all existing positions to maximize BP...")
+        for p in positions:
+            print(f"   Closing {p.symbol}...")
+            client.close_position(p.symbol)
+        
+        if positions:
+            time.sleep(15) # Wait for settlement
+            account = client.get_account()
+
+        # 3. Calculation
+        # Use BUYING POWER for equities
+        current_bp = float(account.buying_power)
+        current_cash = float(account.cash)
+        
+        print(f"   Refreshed BP: ${current_bp:,.2f} | Cash: ${current_cash:,.2f}")
+        
+        # Use BP but capped by slippage
+        equity_amt = min(current_bp, slippage_cap)
+        
+        if equity_amt < 1.05:
+            print(f"⚠️ Equity funds too low for {top_pick}. Checking for ETH sweep...")
+            if current_cash >= 5.0:
+                client.submit_order(MarketOrderRequest(
                     symbol="ETH/USD", notional=round(current_cash * 0.98, 2),
                     side=OrderSide.BUY, time_in_force=TimeInForce.GTC
                 ))
-                print("   ✅ Full Cash Swept to ETH.")
-            except Exception as e:
-                print(f"   ❌ ETH Sweep failed: {e}")
-    else:
-        equity_amt = min(spendable, slippage_cap)
-        # Use a 2% buffer for price movements during order entry
-        equity_order_val = equity_amt * 0.98
-        
-        if equity_order_val >= 1.0:
-            try:
-                trading_client.submit_order(MarketOrderRequest(
-                    symbol=top_pick, notional=round(equity_order_val, 2),
-                    side=OrderSide.BUY, time_in_force=TimeInForce.DAY
-                ))
-                print(f"✅ EQUITY ORDER SUBMITTED: {top_pick} (${equity_order_val:,.2f})")
-                
-                # Check for remaining cash to sweep
-                time.sleep(2)
-                account = trading_client.get_account()
-                remaining_cash = float(account.cash)
-                if remaining_cash >= 5.0:
-                    trading_client.submit_order(MarketOrderRequest(
-                        symbol="ETH/USD", notional=round(remaining_cash * 0.98, 2),
-                        side=OrderSide.BUY, time_in_force=TimeInForce.GTC
-                    ))
-                    print(f"✅ REMAINING CASH SWEPT TO ETH: ${remaining_cash:,.2f}")
-            except Exception as e:
-                print(f"❌ TRADE EXECUTION FAILED: {e}")
+                print("✅ Full Cash Swept to ETH.")
+            return
 
-    print("🏁 SYSTEM COMPLETE.")
+        # 4. Execution
+        order_val = round(equity_amt * 0.98, 2)
+        client.submit_order(MarketOrderRequest(
+            symbol=top_pick, notional=order_val,
+            side=OrderSide.BUY, time_in_force=TimeInForce.DAY
+        ))
+        print(f"✅ EQUITY ORDER SUBMITTED: {top_pick} (${order_val:,.2f})")
+        
+        # 5. Sweep remaining cash (if any)
+        time.sleep(2)
+        account = client.get_account()
+        remaining_cash = float(account.cash)
+        if remaining_cash >= 5.0:
+            client.submit_order(MarketOrderRequest(
+                symbol="ETH/USD", notional=round(remaining_cash * 0.98, 2),
+                side=OrderSide.BUY, time_in_force=TimeInForce.GTC
+            ))
+            print(f"✅ REMAINING CASH SWEPT TO ETH: ${remaining_cash:,.2f}")
+
+    except Exception as e:
+        print(f"❌ Account {config['name']} Error: {e}")
+
+# MAIN EXECUTION LOOP
+for config in configs:
+    run_rebalance_for_account(config, top_pick, slippage_cap)
+
+print("\\n🏁 ALL ACCOUNTS PROCESSED.")
 """))
 
     nb['cells'] = cells
