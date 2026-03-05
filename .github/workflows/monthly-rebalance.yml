@@ -1,4 +1,4 @@
-name: Monthly Alpaca Rebalance
+name: Alpaca Singularity Rebalance
 
 on:
   push:
@@ -14,12 +14,6 @@ jobs:
   rebalance:
     runs-on: ubuntu-latest
 
-    env:
-      APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
-      APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
-      APCA_API_BASE_URL: https://paper-api.alpaca.markets
-      # Change BASE_URL to https://api.alpaca.markets for LIVE trading!
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -34,16 +28,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert yfinance
 
-    - name: Execute Framework 9 Discovery and Monthly Rebalance
+    - name: Run Trading Strategy
       env:
-        APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
-        APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
-        APCA_API_BASE_URL: https://paper-api.alpaca.markets
+        # Pass all credential variations
+        APCA_LIVE_API_KEY_ID: ${{ secrets.APCA_LIVE_API_KEY_ID }}
+        APCA_LIVE_API_SECRET_KEY: ${{ secrets.APCA_LIVE_API_SECRET_KEY }}
+        APCA_LIVE_API_BASE_URL: ${{ secrets.APCA_LIVE_API_BASE_URL }}
+        APCA_PAPER_API_KEY_ID: ${{ secrets.APCA_PAPER_API_KEY_ID }}
+        APCA_PAPER_API_SECRET_KEY: ${{ secrets.APCA_PAPER_API_SECRET_KEY }}
+        APCA_PAPER_API_BASE_URL: ${{ secrets.APCA_PAPER_API_BASE_URL }}
       run: |
         jupyter nbconvert --to notebook --execute "Misc. Files/reengineered-alpaca-monthly-strategy.ipynb"
         
-    - name: Commit execution logs and results
+    - name: Commit execution logs
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "chore: Automated rebalance execution logs"
+        commit_message: "chore: trade execution logs [automated]"
         file_pattern: "*.ipynb"
