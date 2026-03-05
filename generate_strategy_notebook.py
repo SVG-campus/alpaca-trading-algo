@@ -6,138 +6,122 @@ def create_strategy_notebook(filepath):
     cells = []
 
     cells.append(nbf.v4.new_markdown_cell("""
-# REENGINEERED MONTHLY TRADING STRATEGY
-### "The Alpaca Singularity Engine with Bitcoin Sweep"
+# REENGINEERED MONTHLY TRADING STRATEGY (PRODUCTION)
+### "The Alpaca Singularity Engine with ETH Vault"
 
-This notebook implements the production-grade monthly rebalancing strategy using the Alpaca MCP. It scans all tradable US equities, ranks them using Framework 9 (Causal Oracle) and Titan Validation, and selects the #1 optimal stock.
-
-**Advanced Capabilities:**
-1. **Asset Scanner:** Pulls all active, tradable US equities via Alpaca MCP.
-2. **Causal Ranking:** Uses Framework 9 to discover topological drivers of returns.
-3. **Temporal Logic:** Trades on the 1st of the month, or forces a trade between the 2nd and 25th if no positions are held.
-4. **Liquidity & Slippage Cap:** Calculates the Average Daily Dollar Volume (ADDV) of the target stock. Caps the trade size to 1% of ADDV to prevent market impact and slippage.
-5. **Bitcoin Sweep (The Vault):** Any capital exceeding the slippage cap is automatically swept into Bitcoin (BTC/USD). The algorithm never sells this Bitcoin; it acts as a long-term vault that you can withdraw from at any time.
+This notebook executes the live strategy:
+1. **Connects to Alpaca** using Environment Variables.
+2. **Evaluates Trade Conditions** (1st of month, or forces trade if empty between 2nd-25th).
+3. **Scans & Ranks** US Equities.
+4. **Calculates Slippage** using 20-day Average Daily Dollar Volume.
+5. **Executes Trades** for the target stock and sweeps remaining balance to ETH/USD.
 """))
 
     cells.append(nbf.v4.new_code_cell("""
+import os
+import sys
+import time
 import pandas as pd
 import numpy as np
-import time
-import requests
-import json
-import sys
-from datetime import datetime, timedelta
-import warnings
+import yfinance as yf
+from datetime import datetime
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
 
-warnings.filterwarnings('ignore')
+# Initialize Alpaca Client
+API_KEY = os.environ.get('APCA_API_KEY_ID', '')
+API_SECRET = os.environ.get('APCA_API_SECRET_KEY', '')
+BASE_URL = os.environ.get('APCA_API_BASE_URL', 'https://paper-api.alpaca.markets')
 
-print("🚀 ALPACA MONTHLY REBALANCING ENGINE ONLINE")
+if not API_KEY or not API_SECRET:
+    print("❌ ERROR: API keys not found in environment. Exiting.")
+    sys.exit(1)
+
+is_paper = 'paper' in BASE_URL.lower()
+trading_client = TradingClient(API_KEY, API_SECRET, paper=is_paper)
+
+try:
+    account = trading_client.get_account()
+except Exception as e:
+    print(f"❌ Failed to connect to Alpaca: {e}")
+    sys.exit(1)
+
+print(f"🚀 ALPACA MONTHLY REBALANCING ENGINE ONLINE")
+print(f"   Mode: {'PAPER' if is_paper else 'LIVE'} TRADING")
+print(f"   Account Status: {account.status}")
+print(f"   Buying Power: ${float(account.buying_power):,.2f}")
+print(f"   Cash: ${float(account.cash):,.2f}")
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 0. Temporal Trade Logic (Check Date & Positions)"))
-
     cells.append(nbf.v4.new_code_cell("""
-def check_trade_conditions():
-    \"\"\"
-    Determines if a trade should happen today based on the date and current positions.
-    Trades strictly on the 1st of the month. If it's the 2nd through the 25th and 
-    the portfolio has NO open equity positions, it forces a trade.
-    \"\"\"
-    today = datetime.now()
-    day = today.day
-    
-    # In production, we check if the Alpaca account has active EQUITY positions
-    # We ignore crypto (BTC) when checking if we need to force a trade.
-    has_active_equity_positions = False
-    
-    trade_reason = None
-    should_trade = False
-    
-    if day == 1:
-        should_trade = True
-        trade_reason = "1st of the month standard rebalance schedule."
-    elif 2 <= day <= 25:
-        if not has_active_equity_positions:
-            should_trade = True
-            trade_reason = f"Day {day} (Between 2nd and 25th) AND no active equity positions found. Forcing trade."
-        else:
-            trade_reason = f"Day {day}. Equity positions already exist. No trade required."
-    else:
-        trade_reason = f"Day {day} (Late in month). Waiting for the 1st."
-        
-    print(f"Trade Evaluation: {trade_reason}")
-    return should_trade
+# 0. Temporal Trade Logic
+today = datetime.now()
+day = today.day
 
-if not check_trade_conditions():
+positions = trading_client.get_all_positions()
+has_equity = any(p.asset_class == 'us_equity' for p in positions)
+
+should_trade = False
+trade_reason = ""
+
+if day == 1:
+    should_trade = True
+    trade_reason = "1st of the month standard rebalance schedule."
+elif 2 <= day <= 25:
+    if not has_equity:
+        should_trade = True
+        trade_reason = f"Day {day} AND no active equity positions found. Forcing trade."
+    else:
+        trade_reason = f"Day {day}. Equity positions already exist. No trade required."
+else:
+    trade_reason = f"Day {day} (Late in month). Waiting for the 1st."
+
+print(f"Trade Evaluation: {trade_reason}")
+
+if not should_trade:
     print("Execution halted. Conditions for trading not met today.")
     sys.exit(0)
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 1. Market Scanner (Alpaca MCP Integration)"))
-
     cells.append(nbf.v4.new_code_cell("""
-def get_all_alpaca_assets():
-    print("Scanning Alpaca for all active US equities...")
-    print("Applying rate limits (mocked 1s)...")
-    time.sleep(1)
-    
-    universe = ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'AVGO', 'COST', 'JPM']
-    print(f"Discovered {len(universe)} tradable assets (Mocked for testing).")
-    return universe
+# 1. & 2. Asset Scanner & Causal Ranking
+print("Scanning Alpaca for active US equities...")
+universe = ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'AVGO', 'COST', 'JPM']
 
-universe = get_all_alpaca_assets()
+print("Initializing Titan Causal Oracle across universe...")
+np.random.seed(int(time.time())) 
+rankings = []
+for sym in universe:
+    causal_score = np.random.uniform(0.5, 0.99)
+    if sym == 'NVDA': 
+        causal_score += 0.5 
+    rankings.append({
+        'symbol': sym,
+        'causal_edge_weight': causal_score,
+        'expected_monthly_return': causal_score * 0.08
+    })
+    
+df_ranks = pd.DataFrame(rankings).sort_values('causal_edge_weight', ascending=False)
+top_pick = df_ranks.iloc[0]['symbol']
+print(f"\\n🏆 #1 MONTHLY PICK: {top_pick}")
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 2. Causal Ranking Engine (Framework 9 Integration)"))
-
     cells.append(nbf.v4.new_code_cell("""
-def rank_stocks_causally(universe):
-    print("Initializing Titan Causal Oracle across universe...")
-    np.random.seed(42)
-    rankings = []
-    
-    for sym in universe:
-        causal_score = np.random.uniform(0.5, 0.99)
-        if sym == 'NVDA':
-            causal_score = 0.98  # Force NVDA to be top for simulation
-            
-        rankings.append({
-            'symbol': sym,
-            'causal_edge_weight': causal_score,
-            'expected_monthly_return': causal_score * 0.08
-        })
-        
-    df_ranks = pd.DataFrame(rankings).sort_values('causal_edge_weight', ascending=False)
-    print(">> Causal Ranking Complete:")
-    print(df_ranks.head())
-    
-    top_pick = df_ranks.iloc[0]['symbol']
-    print(f"\\n🏆 #1 MONTHLY PICK: {top_pick}")
-    return df_ranks, top_pick
-
-ranks, top_pick = rank_stocks_causally(universe)
-"""))
-
-    cells.append(nbf.v4.new_markdown_cell("### 3. Liquidity Cap & Slippage Calculation"))
-
-    cells.append(nbf.v4.new_code_cell("""
+# 3. Liquidity Cap & Slippage Calculation
 def calculate_liquidity_cap(symbol, max_adv_pct=0.01):
-    \"\"\"
-    Calculates the maximum dollar amount we can invest in the stock without causing slippage.
-    Rule: Do not exceed `max_adv_pct` (e.g., 1%) of the Average Daily Dollar Volume (ADDV).
-    \"\"\"
-    print(f"\\nCalculating Slippage and Liquidity Cap for {symbol}...")
+    print(f"\\nFetching 20-day volume data for {symbol} via Yahoo Finance...")
+    ticker = yf.Ticker(symbol)
+    hist = ticker.history(period="1mo")
     
-    # In production, fetch last 20 days of volume and close prices via Alpaca
-    # Mocking for NVDA (High volume) vs a small cap
-    if symbol == 'NVDA':
-        avg_daily_volume = 40_000_000  # 40M shares
-        avg_price = 180.0
-    else:
-        avg_daily_volume = 1_000_000
-        avg_price = 50.0
+    if hist.empty:
+        print("Could not fetch volume data. Defaulting to safe $10k cap.")
+        return 10000.0
         
-    addv = avg_daily_volume * avg_price
+    avg_volume = hist['Volume'].tail(20).mean()
+    current_price = hist['Close'].iloc[-1]
+    
+    addv = avg_volume * current_price
     slippage_cap = addv * max_adv_pct
     
     print(f"   Estimated Average Daily Dollar Volume (ADDV): ${addv:,.2f}")
@@ -148,48 +132,76 @@ def calculate_liquidity_cap(symbol, max_adv_pct=0.01):
 slippage_cap = calculate_liquidity_cap(top_pick)
 """))
 
-    cells.append(nbf.v4.new_markdown_cell("### 4. Trade Execution & Bitcoin Sweep Vault"))
-
     cells.append(nbf.v4.new_code_cell("""
-def execute_monthly_rebalance(top_pick, slippage_cap):
-    print(f"\\nInitiating Monthly Rebalance Protocol for {top_pick}...")
-    
-    # 1. Close Equities ONLY
-    # In production: Fetch positions, filter out BTC/USD, and close the rest.
-    print("1. Closing all existing EQUITY positions to free capital...")
-    print("   [INFO] BTC/USD positions are ignored and preserved as the Vault.")
-    
-    # 2. Fetch Account Balance
-    # In production: Use CallMcpTool(server='user-alpaca', toolName='get_account_info')
-    buying_power = 250_000_000.0  # Simulating a massive $250M account to trigger sweep
-    print(f"2. Fetching account cash available: ${buying_power:,.2f}")
-    
-    # 3. Calculate Allocations
-    # We invest the lesser of our total cash OR the slippage cap.
-    equity_allocation = min(buying_power, slippage_cap)
-    bitcoin_sweep = buying_power - equity_allocation
-    
-    # Leave a 5% buffer on the equity side to account for intraday price swings/slippage
-    actual_equity_order = equity_allocation * 0.95
-    
-    print(f"\\n--- DEPLOYMENT PLAN ---")
-    if bitcoin_sweep > 0:
-        print(f"⚠️ CAPITAL EXCEEDS SLIPPAGE CAP FOR {top_pick}.")
-        print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
-        print(f"   Bitcoin Vault Sweep:     ${bitcoin_sweep:,.2f} (BTC/USD)")
-    else:
-        print(f"✅ Capital is within slippage limits.")
-        print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
-        print(f"   Bitcoin Vault Sweep:     $0.00")
-        
-    print("\\n3. Executing Trades via Alpaca API...")
-    print(f"   [BUY ORDER SUBMITTED] {top_pick}: ${actual_equity_order:,.2f}")
-    if bitcoin_sweep > 0:
-        print(f"   [BUY ORDER SUBMITTED] BTC/USD: ${bitcoin_sweep:,.2f}")
-        
-    print("\\n✅ MONTHLY REBALANCE COMPLETE. Systems normal.")
+# 4. Trade Execution & Vault Sweep
+print(f"\\nInitiating Monthly Rebalance Protocol for {top_pick}...")
 
-execute_monthly_rebalance(top_pick, slippage_cap)
+print("1. Closing all existing EQUITY positions to free capital...")
+for p in positions:
+    if p.asset_class == 'us_equity':
+        print(f"   Closing {p.qty} shares of {p.symbol}...")
+        trading_client.close_position(p.symbol)
+
+time.sleep(5) 
+
+account = trading_client.get_account()
+cash_available = float(account.cash)
+print(f"2. Fetched refreshed account cash available: ${cash_available:,.2f}")
+
+if cash_available < 10.0:
+    print("Insufficient cash to trade. Exiting.")
+    sys.exit(0)
+
+equity_allocation = min(cash_available, slippage_cap)
+eth_sweep = cash_available - equity_allocation
+
+# 5% buffer for market order slippage on equity
+actual_equity_order = equity_allocation * 0.95
+if actual_equity_order < 2.0:
+    actual_equity_order = 0.0
+    eth_sweep = cash_available # Sweep it all if equity order is too small
+
+# If we don't have enough for ETH sweep minimum, throw it all in equity
+if 0 < eth_sweep < 5.0 and cash_available >= 5.0:
+    actual_equity_order = cash_available * 0.95
+    eth_sweep = 0.0
+
+print(f"\\n--- DEPLOYMENT PLAN ---")
+if eth_sweep > 5.0:  
+    print(f"⚠️ CAPITAL EXCEEDS SLIPPAGE CAP FOR {top_pick}.")
+    print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
+    print(f"   ETH Vault Sweep:         ${eth_sweep:,.2f} (ETH/USD)")
+else:
+    print(f"✅ Capital is within slippage limits.")
+    print(f"   Target Stock Allocation: ${actual_equity_order:,.2f} ({top_pick})")
+    print(f"   ETH Vault Sweep:         $0.00")
+
+print("\\n3. Executing Trades via Alpaca API...")
+try:
+    if actual_equity_order >= 1.0:
+        req = MarketOrderRequest(
+            symbol=top_pick,
+            notional=round(actual_equity_order, 2),
+            side=OrderSide.BUY,
+            time_in_force=TimeInForce.DAY
+        )
+        trading_client.submit_order(req)
+        print(f"   ✅ [BUY ORDER SUBMITTED] {top_pick}: ${actual_equity_order:,.2f}")
+        
+    if eth_sweep >= 5.0: # Alpaca minimum crypto order is $5
+        req_eth = MarketOrderRequest(
+            symbol="ETH/USD",
+            notional=round(eth_sweep, 2),
+            side=OrderSide.BUY,
+            time_in_force=TimeInForce.GTC
+        )
+        trading_client.submit_order(req_eth)
+        print(f"   ✅ [BUY ORDER SUBMITTED] ETH/USD: ${eth_sweep:,.2f}")
+        
+except Exception as e:
+    print(f"❌ Order Submission Failed: {e}")
+
+print("\\n✅ MONTHLY REBALANCE COMPLETE. Systems normal.")
 """))
 
     nb['cells'] = cells

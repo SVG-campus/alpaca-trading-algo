@@ -1,9 +1,12 @@
 name: Monthly Alpaca Rebalance
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    # Run at 9:00 AM UTC (4:00 AM EST) every weekday so it can check date conditions
-    - cron: '0 9 * * 1-5'
+    # Run at 14:00 UTC (9:00 AM EST) every weekday
+    - cron: '0 14 * * 1-5'
   workflow_dispatch:
     # Allow manual triggering
 
@@ -15,6 +18,7 @@ jobs:
       APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
       APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
       APCA_API_BASE_URL: https://paper-api.alpaca.markets
+      # Change BASE_URL to https://api.alpaca.markets for LIVE trading!
 
     steps:
     - name: Checkout repository
@@ -28,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert
+        pip install pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert yfinance
 
     - name: Execute Framework 9 Discovery and Monthly Rebalance
       run: |
