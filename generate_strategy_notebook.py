@@ -36,6 +36,8 @@ BASE_URL = os.environ.get('APCA_API_BASE_URL', 'https://paper-api.alpaca.markets
 
 if not API_KEY or not API_SECRET:
     print("❌ ERROR: API keys not found in environment. Exiting.")
+    print("APCA_API_KEY_ID exists:", bool(API_KEY))
+    print("APCA_API_SECRET_KEY exists:", bool(API_SECRET))
     sys.exit(1)
 
 is_paper = 'paper' in BASE_URL.lower()
