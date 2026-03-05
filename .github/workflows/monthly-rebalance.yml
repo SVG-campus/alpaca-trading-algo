@@ -35,6 +35,10 @@ jobs:
         pip install pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert yfinance
 
     - name: Execute Framework 9 Discovery and Monthly Rebalance
+      env:
+        APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
+        APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
+        APCA_API_BASE_URL: https://paper-api.alpaca.markets
       run: |
         jupyter nbconvert --to notebook --execute "Misc. Files/reengineered-alpaca-monthly-strategy.ipynb"
         
