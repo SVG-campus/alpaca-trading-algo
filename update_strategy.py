@@ -30,7 +30,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
-from alpaca.trading.enums import OrderSide, TimeInForce, AssetClass
+from alpaca.trading.enums import OrderSide, TimeInForce, AssetClass, AssetStatus
 import networkx as nx
 import xgboost as xgb
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -89,21 +89,8 @@ day = today.day
 positions = trading_client.get_all_positions()
 has_equity = any(p.asset_class == AssetClass.US_EQUITY for p in positions)
 
-should_trade = False
-trade_reason = ""
-
-# Condition for trading
-if day == 1:
-    should_trade = True
-    trade_reason = "1st of the month standard rebalance."
-elif 2 <= day <= 25:
-    if not has_equity:
-        should_trade = True
-        trade_reason = f"Forced trade (Day {day} with empty portfolio)."
-    else:
-        trade_reason = f"Halted: Positions already exist (Day {day})."
-else:
-    trade_reason = f"Halted: Day {day} is in cooldown."
+should_trade = True # FORCE TRADING TODAY FOR TESTING PURPOSES
+trade_reason = "Forced testing rebalance."
 
 print(f"Status: {trade_reason}")
 
@@ -125,23 +112,32 @@ else:
     cells.append(nbf.v4.new_code_cell("""
 # 3. WIDE UNIVERSE SCANNING & VOLATILITY FILTRATION
 if 'should_trade' in locals() and should_trade:
-    print("--- 1. SCANNING EXPANDED UNIVERSE ---")
-    raw_universe = [
-        'NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'AVGO', 'COST', 'JPM',
-        'AMD', 'INTC', 'CRM', 'ADBE', 'NFLX', 'PYPL', 'SHOP', 'UBER', 'ABNB',
-        'JNJ', 'UNH', 'PFE', 'ABBV', 'MRK', 'TMO', 'DHR', 'LLY', 'BMY', 'AMGN',
-        'V', 'MA', 'BAC', 'WFC', 'C', 'GS', 'MS', 'BLK', 'AXP', 'SPGI'
-    ]
+    print("--- 1. SCANNING EXPANDED UNIVERSE (DYNAMIC MARKET DISCOVERY) ---")
+    active_assets = trading_client.get_all_assets()
+    us_equities = [a.symbol for a in active_assets if a.status == AssetStatus.ACTIVE and a.asset_class == AssetClass.US_EQUITY and a.tradable and a.fractionable]
+    clean_equities = [s for s in us_equities if '-' not in s and '.' not in s]
+    
+    custom = ['NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'AVGO', 'COST', 'JPM', 'PLTR', 'SMCI', 'COIN', 'MSTR']
+    
+    # Randomly sample 80 mid/large caps from the market to discover new IPOs and hidden gems
+    np.random.seed(int(time.time()))
+    try:
+        random_picks = list(np.random.choice(clean_equities, 80, replace=False))
+    except:
+        random_picks = clean_equities[:80]
+        
+    raw_universe = list(set(custom + random_picks))
     
     end_date = datetime.now()
     start_date = end_date - timedelta(days=730)
+    print(f"Downloading 2-year data for dynamic universe of {len(raw_universe)} stocks...")
     df_raw = yf.download(raw_universe, start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))['Close']
     df_raw = df_raw.dropna(axis=1) # Drop stocks with incomplete history
     
     if isinstance(df_raw.columns, pd.MultiIndex):
         df_raw.columns = df_raw.columns.get_level_values(0)
     
-    print(f"Loaded {len(df_raw)} days of data for {len(df_raw.columns)} stocks.")
+    print(f"Loaded {len(df_raw)} days of data for {len(df_raw.columns)} valid stocks.")
     
     print("--- 2. VOLATILITY & CRASH FILTRATION ---")
     returns = df_raw.pct_change().dropna()
@@ -225,6 +221,7 @@ if 'should_trade' in locals() and should_trade and 'top_pick_long' in locals():
     account = trading_client.get_account()
     current_bp = float(account.buying_power)
     current_cash = float(account.cash)
+    current_pv = float(account.portfolio_value)
     
     spendable = current_bp
     
@@ -273,6 +270,21 @@ if 'should_trade' in locals() and should_trade and 'top_pick_long' in locals():
             print(f"✅ REMAINING CASH SWEPT TO ETH VAULT")
         except:
             pass
+
+    # --- 5. LOGGING PORTFOLIO PERFORMANCE ---
+    try:
+        log_file = 'trading_history_logs.csv'
+        header = "Date,Mode,Portfolio_Value,Cash,Buying_Power,Long_Pick,Long_Score,Short_Pick,Short_Score\\n"
+        log_entry = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{mode},{current_pv},{current_cash},{current_bp},{top_pick_long},{causal_rankings[top_pick_long]:.4f},{top_pick_short},{causal_rankings[top_pick_short]:.4f}\\n"
+        
+        if not os.path.exists(log_file):
+            with open(log_file, 'w') as f:
+                f.write(header)
+        with open(log_file, 'a') as f:
+            f.write(log_entry)
+        print(f"✅ LOGGED execution details to {log_file}")
+    except Exception as e:
+        print(f"❌ Failed to log performance: {e}")
 
     print("🏁 SYSTEM COMPLETE.")
 """))

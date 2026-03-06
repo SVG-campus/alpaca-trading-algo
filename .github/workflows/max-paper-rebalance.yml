@@ -2,11 +2,8 @@ name: MAX Paper Trading Rebalance
 
 on:
   schedule:
-    # Run only on the 1st of every month at 9:30 AM EST (14:30 UTC)
-    - cron: '30 14 1 * *'
-    # Force run on Monday morning at 9:30 AM EST (14:30 UTC)
-    - cron: '30 14 * * 1'
-  workflow_dispatch:
+    - cron: '30 19 * * *'
+  workflow_dispatch: {}
 
 jobs:
   max-paper-trade:
@@ -28,8 +25,8 @@ jobs:
           APCA_PAPER_API_SECRET_KEY: ${{ secrets.MAX_APCA_PAPER_API_SECRET_KEY || secrets.ALPACA_SECRET_KEY }}
           APCA_PAPER_API_BASE_URL: ${{ secrets.MAX_APCA_PAPER_API_BASE_URL }}
         run: |
-          jupyter nbconvert --to notebook --execute "Misc. Files/strategy-max-paper.ipynb"
+          jupyter nbconvert --to notebook --execute --inplace "Misc. Files/strategy-max-paper.ipynb"
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: MAX paper trading logs"
-          file_pattern: "*.ipynb"
+          file_pattern: "."
