@@ -20,16 +20,17 @@ jobs:
           python-version: '3.10'
       - run: |
           python -m pip install --upgrade pip
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install torch_geometric pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert yfinance matplotlib
-      - name: Run MAX Paper Strategy
+          pip install alpaca-py yfinance pandas
+      - name: Run MAX Paper Strategy From Cache
         env:
           MAX_APCA_PAPER_API_KEY_ID: ${{ secrets.MAX_APCA_PAPER_API_KEY_ID || secrets.ALPACA_API_KEY }}
           MAX_APCA_PAPER_API_SECRET_KEY: ${{ secrets.MAX_APCA_PAPER_API_SECRET_KEY || secrets.ALPACA_SECRET_KEY }}
-          MAX_APCA_PAPER_API_BASE_URL: ${{ secrets.MAX_APCA_PAPER_API_BASE_URL }}
+          TRADING_MODE: MAX-PAPER
+          DISCOVERY_CACHE_PATH: data/latest_discovery.json
+          DISCOVERY_MAX_AGE_DAYS: 10
         run: |
-          jupyter nbconvert --to notebook --execute --inplace "Misc. Files/strategy-max-paper.ipynb"
+          python run_trade_from_cache.py
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: MAX paper trading logs"
-          file_pattern: "."
+          file_pattern: "trading_history_logs.csv"
