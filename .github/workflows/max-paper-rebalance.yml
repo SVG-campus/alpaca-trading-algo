@@ -3,14 +3,14 @@ name: MAX Paper Trading Rebalance
 on:
   schedule:
     - cron: '35 19 * * *'
-  push:
-    branches:
-      - main
   workflow_dispatch: {}
 
 jobs:
   max-paper-trade:
     runs-on: ubuntu-latest
+    concurrency:
+      group: max-paper-rebalance-${{ github.ref }}
+      cancel-in-progress: true
     permissions:
       contents: write
     steps:
