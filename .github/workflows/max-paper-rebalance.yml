@@ -3,6 +3,9 @@ name: MAX Paper Trading Rebalance
 on:
   schedule:
     - cron: '35 19 * * *'
+  push:
+    branches:
+      - main
   workflow_dispatch: {}
 
 jobs:
@@ -21,9 +24,9 @@ jobs:
           pip install torch_geometric pandas numpy networkx scikit-learn xgboost alpaca-py jupyter nbconvert yfinance matplotlib
       - name: Run MAX Paper Strategy
         env:
-          APCA_PAPER_API_KEY_ID: ${{ secrets.MAX_APCA_PAPER_API_KEY_ID || secrets.ALPACA_API_KEY }}
-          APCA_PAPER_API_SECRET_KEY: ${{ secrets.MAX_APCA_PAPER_API_SECRET_KEY || secrets.ALPACA_SECRET_KEY }}
-          APCA_PAPER_API_BASE_URL: ${{ secrets.MAX_APCA_PAPER_API_BASE_URL }}
+          MAX_APCA_PAPER_API_KEY_ID: ${{ secrets.MAX_APCA_PAPER_API_KEY_ID || secrets.ALPACA_API_KEY }}
+          MAX_APCA_PAPER_API_SECRET_KEY: ${{ secrets.MAX_APCA_PAPER_API_SECRET_KEY || secrets.ALPACA_SECRET_KEY }}
+          MAX_APCA_PAPER_API_BASE_URL: ${{ secrets.MAX_APCA_PAPER_API_BASE_URL }}
         run: |
           jupyter nbconvert --to notebook --execute --inplace "Misc. Files/strategy-max-paper.ipynb"
       - uses: stefanzweifel/git-auto-commit-action@v4
