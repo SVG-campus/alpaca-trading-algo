@@ -30,7 +30,13 @@ jobs:
           DISCOVERY_MAX_AGE_DAYS: 10
         run: |
           python run_trade_from_cache.py
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - name: Pull latest logs to avoid race conditions
+        run: |
+          git config --global pull.rebase true
+          git stash || true
+          git pull origin main || true
+          git stash pop || true
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: live trading logs"
           file_pattern: "trading_history_logs.csv"
