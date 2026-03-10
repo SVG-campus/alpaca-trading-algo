@@ -151,32 +151,52 @@ def main():
     current_bp = float(account.buying_power)
     current_cash = float(account.cash)
     current_pv = float(account.portfolio_value)
-    top_pick_long = cache["long_pick"]
+    
     top_pick_short = cache["short_pick"]
-
-    slippage_cap_long = long_slippage_cap(top_pick_long)
-    long_budget = min(current_bp * 0.80, slippage_cap_long)
+    top_rankings = cache.get("top_rankings", [])
+    
+    total_long_budget = current_bp * 0.80
     short_budget = current_bp * 0.20
-    order_val_long = round(long_budget * 0.98, 2)
-    order_val_short = round(short_budget * 0.98, 2)
-    print(
-        f"Refreshed BP: ${current_bp:,.2f} | Planning Long: ${order_val_long:,.2f} | "
-        f"Planning Short: ${order_val_short:,.2f}"
-    )
-
-    if order_val_long >= 1.0:
-        try:
-            trading_client.submit_order(
-                MarketOrderRequest(
-                    symbol=top_pick_long,
-                    notional=order_val_long,
-                    side=OrderSide.BUY,
-                    time_in_force=TimeInForce.DAY,
+    
+    # ---------------------------------------------------------
+    # LONG ALLOCATION (Cascade through top rankings if maxed out)
+    # ---------------------------------------------------------
+    remaining_long_budget = total_long_budget
+    print(f"Refreshed BP: ${current_bp:,.2f} | Total Long Budget: ${total_long_budget:,.2f}")
+    
+    for pick in top_rankings:
+        symbol = pick["symbol"]
+        if remaining_long_budget < 1.0:
+            break
+            
+        slippage_cap = long_slippage_cap(symbol)
+        allocation = min(remaining_long_budget, slippage_cap)
+        
+        # Buffer to prevent margin calls, but bypass buffer if budget is extremely small (like $1.18)
+        buffer = 0.98 if current_bp > 10.0 else 1.0
+        order_val = round(allocation * buffer, 2)
+        
+        if order_val >= 1.0:
+            try:
+                trading_client.submit_order(
+                    MarketOrderRequest(
+                        symbol=symbol,
+                        notional=order_val,
+                        side=OrderSide.BUY,
+                        time_in_force=TimeInForce.DAY,
+                    )
                 )
-            )
-            print(f"LONG submitted: {top_pick_long} (${order_val_long:,.2f})")
-        except Exception as exc:
-            print(f"LONG trade failed: {exc}")
+                print(f"LONG submitted: {symbol} (${order_val:,.2f})")
+                remaining_long_budget -= allocation
+            except Exception as exc:
+                print(f"LONG trade failed for {symbol}: {exc}")
+
+    # ---------------------------------------------------------
+    # SHORT ALLOCATION
+    # ---------------------------------------------------------
+    buffer = 0.98 if current_bp > 10.0 else 1.0
+    order_val_short = round(short_budget * buffer, 2)
+    print(f"Planning Short: ${order_val_short:,.2f}")
 
     if order_val_short >= 1.0:
         try:
@@ -195,20 +215,26 @@ def main():
         except Exception as exc:
             print(f"SHORT trade failed: {exc}")
 
+    # ---------------------------------------------------------
+    # SWEEP REMAINING CASH
+    # ---------------------------------------------------------
     time.sleep(2)
     account = trading_client.get_account()
     rem_cash = float(account.cash)
-    if rem_cash >= 5.0:
+    # Lowered sweep threshold to $1.00 for small accounts
+    if rem_cash >= 1.0:
+        buffer = 0.98 if rem_cash > 10.0 else 1.0
+        sweep_val = round(rem_cash * buffer, 2)
         try:
             trading_client.submit_order(
                 MarketOrderRequest(
                     symbol="ETH/USD",
-                    notional=round(rem_cash * 0.98, 2),
+                    notional=sweep_val,
                     side=OrderSide.BUY,
                     time_in_force=TimeInForce.GTC,
                 )
             )
-            print("Remaining cash swept to ETH vault")
+            print(f"Remaining cash (${sweep_val:,.2f}) swept to ETH vault")
         except Exception:
             pass
 
