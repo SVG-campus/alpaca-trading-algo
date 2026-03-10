@@ -215,29 +215,6 @@ def main():
         except Exception as exc:
             print(f"SHORT trade failed: {exc}")
 
-    # ---------------------------------------------------------
-    # SWEEP REMAINING CASH
-    # ---------------------------------------------------------
-    time.sleep(2)
-    account = trading_client.get_account()
-    rem_cash = float(account.cash)
-    # Lowered sweep threshold to $1.00 for small accounts
-    if rem_cash >= 1.0:
-        buffer = 0.98 if rem_cash > 10.0 else 1.0
-        sweep_val = round(rem_cash * buffer, 2)
-        try:
-            trading_client.submit_order(
-                MarketOrderRequest(
-                    symbol="ETH/USD",
-                    notional=sweep_val,
-                    side=OrderSide.BUY,
-                    time_in_force=TimeInForce.GTC,
-                )
-            )
-            print(f"Remaining cash (${sweep_val:,.2f}) swept to ETH vault")
-        except Exception:
-            pass
-
     append_trade_log(mode, current_pv, current_cash, current_bp, cache)
     print("Trading run complete.")
 
