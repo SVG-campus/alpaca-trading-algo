@@ -30,13 +30,31 @@ jobs:
           DISCOVERY_MAX_AGE_DAYS: 10
         run: |
           python run_trade_from_cache.py
-      - name: Pull latest logs to avoid race conditions
+      - name: Commit and push logs with retry
         run: |
-          git config --global pull.rebase true
-          git stash || true
-          git pull origin main || true
-          git stash pop || true
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: paper trading logs"
-          file_pattern: "trading_history_logs.csv"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add trading_history_logs_paper.csv
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          
+          git commit -m "chore: paper trading logs"
+          
+          # Retry loop for race conditions (max 5 attempts)
+          for i in {1..5}; do
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; break; }
+            if git push origin HEAD:main; then
+              echo "Successfully pushed logs."
+              exit 0
+            fi
+            echo "Push failed due to race condition. Retrying in 5 seconds... (Attempt $i/5)"
+            sleep 5
+          done
+          
+          echo "Failed to push logs after 5 attempts."
+          exit 1

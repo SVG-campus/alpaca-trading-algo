@@ -99,7 +99,9 @@ def should_trade_today(trading_client: TradingClient):
 
 
 def append_trade_log(mode: str, current_pv: float, current_cash: float, current_bp: float, cache: dict):
-    log_path = Path("trading_history_logs.csv")
+    # Use mode-specific log files to avoid Git merge conflicts across parallel runs
+    safe_mode = mode.lower()
+    log_path = Path(f"trading_history_logs_{safe_mode}.csv")
     header = "Date,Mode,Portfolio_Value,Cash,Buying_Power,Long_Pick,Long_Score,Short_Pick,Short_Score\n"
     log_entry = (
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{mode},{current_pv},{current_cash},{current_bp},"
