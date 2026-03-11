@@ -192,28 +192,44 @@ def main():
                 print(f"LONG trade failed for {symbol}: {exc}")
 
     # ---------------------------------------------------------
-    # SHORT ALLOCATION
+    # SHORT ALLOCATION (Cascade through top short rankings if maxed out)
     # ---------------------------------------------------------
-    buffer = 0.98 if current_bp > 10.0 else 1.0
-    order_val_short = round(short_budget * buffer, 2)
-    print(f"Planning Short: ${order_val_short:,.2f}")
+    top_short_rankings = cache.get("top_short_rankings", [])
+    remaining_short_budget = short_budget
+    print(f"Total Short Budget: ${short_budget:,.2f}")
+    
+    # Fallback if "top_short_rankings" was not in an old cache JSON
+    if not top_short_rankings:
+        top_short_rankings = [{"symbol": top_pick_short, "score": cache.get("short_score", 0.0)}]
 
-    if order_val_short >= 1.0:
-        try:
-            short_price = latest_price(top_pick_short, cache)
-            qty = round(order_val_short / short_price, 2)
-            if qty > 0.1:
-                trading_client.submit_order(
-                    MarketOrderRequest(
-                        symbol=top_pick_short,
-                        qty=qty,
-                        side=OrderSide.SELL,
-                        time_in_force=TimeInForce.DAY,
+    for pick in top_short_rankings:
+        symbol = pick["symbol"]
+        if remaining_short_budget < 1.0:
+            break
+            
+        slippage_cap = long_slippage_cap(symbol)
+        allocation = min(remaining_short_budget, slippage_cap)
+        
+        buffer = 0.98 if current_bp > 10.0 else 1.0
+        order_val_short = round(allocation * buffer, 2)
+        
+        if order_val_short >= 1.0:
+            try:
+                short_price = latest_price(symbol, cache)
+                qty = round(order_val_short / short_price, 2)
+                if qty >= 0.1:
+                    trading_client.submit_order(
+                        MarketOrderRequest(
+                            symbol=symbol,
+                            qty=qty,
+                            side=OrderSide.SELL,
+                            time_in_force=TimeInForce.DAY,
+                        )
                     )
-                )
-                print(f"SHORT submitted: {top_pick_short} ({qty} shares)")
-        except Exception as exc:
-            print(f"SHORT trade failed: {exc}")
+                    print(f"SHORT submitted: {symbol} ({qty} shares | ${order_val_short:,.2f})")
+                    remaining_short_budget -= allocation
+            except Exception as exc:
+                print(f"SHORT trade failed for {symbol}: {exc}")
 
     append_trade_log(mode, current_pv, current_cash, current_bp, cache)
     print("Trading run complete.")
