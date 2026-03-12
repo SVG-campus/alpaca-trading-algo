@@ -47,8 +47,8 @@ def build_ttp_allocation():
     print("Rule: Only trading assets > $40.00 to satisfy TTP $0.10/share minimum movement.\n")
     
     for total_bp in accounts:
-        long_budget = total_bp * 0.80
-        short_budget = total_bp * 0.20
+        # TTP EVALUATION DOES NOT ALLOW SHORTING - USING 100% LONG BUDGET
+        long_budget = total_bp * 1.00
         
         print(f"======================================================")
         print(f"💰 TTP ACCOUNT SIZE: ${total_bp:,.2f}")
@@ -57,7 +57,7 @@ def build_ttp_allocation():
         print(f"======================================================")
         
         # ---------------------
-        # LONG ALLOCATIONS
+        # LONG ALLOCATIONS (100% Capital)
         # ---------------------
         print(f"📈 LONG ALLOCATIONS (Budget: ${long_budget:,.2f})")
         remaining_long = long_budget
@@ -84,41 +84,12 @@ def build_ttp_allocation():
             print("  --> No valid LONG targets found > $40")
             
         # ---------------------
-        # SHORT ALLOCATIONS
-        # ---------------------
-        print(f"\n📉 SHORT ALLOCATIONS (Budget: ${short_budget:,.2f})")
-        remaining_short = short_budget
-        short_orders = []
-        
-        for pick in top_shorts:
-            sym = pick["symbol"]
-            if sym not in valid_symbols: continue
-            if remaining_short < 10.0: break
-                
-            info = get_asset_info(sym)
-            if not info: continue
-                
-            allocation = min(remaining_short, info["slippage_cap"])
-            shares = int(allocation // info["price"])
-            
-            if shares > 0:
-                cost = shares * info["price"]
-                short_orders.append({"symbol": sym, "shares": shares, "cost": cost})
-                remaining_short -= cost
-                print(f"  --> SHORT {shares} shares of {sym} @ ~${info['price']:,.2f} = ${cost:,.2f}")
-                
-        if not short_orders:
-            print("  --> No valid SHORT targets found > $40")
-            
-        # ---------------------
         # WEBHOOK GENERATION
         # ---------------------
         print(f"\n🤖 TRADERSPOST AUTOMATION WEBHOOK FOR ${total_bp:,.2f} ACCOUNT:")
         webhook_payload = []
         for o in long_orders:
             webhook_payload.append({"ticker": o["symbol"], "action": "buy", "quantity": o["shares"]})
-        for o in short_orders:
-            webhook_payload.append({"ticker": o["symbol"], "action": "sell_short", "quantity": o["shares"]})
             
         print(json.dumps({"trades": webhook_payload}, indent=2))
         print("\n\n")

@@ -1,13 +1,13 @@
 # ==========================================
 # CELL 1: SETUP AND INSTALLATIONS
 # ==========================================
-# Run this in the first cell of your Kaggle Notebook
-# !pip install -q alpaca-py torch-geometric yfinance networkx scikit-learn pandas numpy
+import os
+# Auto-install dependencies if running as a raw script
+os.system("pip install -q alpaca-py torch-geometric yfinance networkx scikit-learn pandas numpy")
 
 # ==========================================
 # CELL 2: IMPORT AND CREDENTIALS
 # ==========================================
-import os
 from kaggle_secrets import UserSecretsClient
 
 # IMPORTANT: Provide your credentials here:
