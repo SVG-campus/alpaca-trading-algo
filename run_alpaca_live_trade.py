@@ -21,7 +21,7 @@ logging.basicConfig(
 # We use APCA_LIVE_API_KEY_ID since this is real money!
 API_KEY = os.environ.get('APCA_LIVE_API_KEY_ID')
 API_SECRET = os.environ.get('APCA_LIVE_API_SECRET_KEY')
-CACHE_FILE = 'data/intraday/latest_discovery.json'
+CACHE_FILE = 'data/intraday/data/latest_discovery.json'
 
 def get_trading_client():
     if not API_KEY or not API_SECRET:

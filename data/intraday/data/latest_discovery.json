@@ -1,0 +1,544 @@
+{
+  "generated_at_utc": "2026-03-15T18:34:41.747912+00:00",
+  "discovery_schedule": "weekly",
+  "raw_universe_count": 94,
+  "optimized_universe_count": 43,
+  "raw_universe": [
+    "AAPL",
+    "AFGC",
+    "AIZ",
+    "ALH",
+    "AMZN",
+    "ARR",
+    "ATAT",
+    "AVGO",
+    "AVIG",
+    "BKV",
+    "BLOK",
+    "BUSE",
+    "CAOS",
+    "CBRE",
+    "CFA",
+    "CHGCY",
+    "CJEWY",
+    "COIN",
+    "COST",
+    "CROX",
+    "CUB",
+    "CUZ",
+    "CWCO",
+    "DAAQ",
+    "DBEU",
+    "DCOR",
+    "DMRC",
+    "ENB",
+    "ENSG",
+    "ESGD",
+    "EWZS",
+    "EZRA",
+    "FICO",
+    "FNLC",
+    "FYC",
+    "GAMB",
+    "GIB",
+    "GMVHY",
+    "GOCT",
+    "GOOGL",
+    "GSM",
+    "HCA",
+    "HOWL",
+    "HWKN",
+    "IBTP",
+    "IXJ",
+    "JPM",
+    "KEN",
+    "LUMN",
+    "LZAGY",
+    "MEI",
+    "META",
+    "MNRO",
+    "MOD",
+    "MSFT",
+    "MSTR",
+    "NOW",
+    "NVDA",
+    "OMF",
+    "PAWZ",
+    "PAYC",
+    "PG",
+    "PLTR",
+    "PNC",
+    "QLTA",
+    "QLYS",
+    "RIOT",
+    "RWEOY",
+    "SBC",
+    "SGDJ",
+    "SHC",
+    "SMCI",
+    "SNWV",
+    "SPFF",
+    "SRBK",
+    "SRHQ",
+    "SUNC",
+    "SYF",
+    "TBFG",
+    "TIPT",
+    "TSLA",
+    "TSM",
+    "TT",
+    "UDR",
+    "UPGD",
+    "UVXY",
+    "VBNK",
+    "VERA",
+    "VGSR",
+    "VSLU",
+    "WY",
+    "XMHQ",
+    "YINN",
+    "ZEPP"
+  ],
+  "optimized_universe": [
+    "AMZN",
+    "ATAT",
+    "AVGO",
+    "BLOK",
+    "CHGCY",
+    "CJEWY",
+    "COIN",
+    "CROX",
+    "CWCO",
+    "DMRC",
+    "FICO",
+    "GAMB",
+    "GMVHY",
+    "GSM",
+    "HOWL",
+    "HWKN",
+    "KEN",
+    "LUMN",
+    "MEI",
+    "META",
+    "MNRO",
+    "MOD",
+    "MSTR",
+    "NOW",
+    "NVDA",
+    "OMF",
+    "PAYC",
+    "PLTR",
+    "QLYS",
+    "RIOT",
+    "SBC",
+    "SGDJ",
+    "SHC",
+    "SMCI",
+    "SYF",
+    "TIPT",
+    "TSLA",
+    "TSM",
+    "UVXY",
+    "VBNK",
+    "VERA",
+    "YINN",
+    "ZEPP"
+  ],
+  "long_pick": "ZEPP",
+  "long_score": -0.32409703941760465,
+  "short_pick": "GSM",
+  "short_score": -0.7069539427757263,
+  "top_rankings": [
+    {
+      "symbol": "ZEPP",
+      "score": -0.32409703941760465
+    },
+    {
+      "symbol": "CJEWY",
+      "score": -0.3924600392292714
+    },
+    {
+      "symbol": "DMRC",
+      "score": -0.41539880956625364
+    },
+    {
+      "symbol": "PLTR",
+      "score": -0.45813554525375366
+    },
+    {
+      "symbol": "ATAT",
+      "score": -0.46991080045700073
+    },
+    {
+      "symbol": "LUMN",
+      "score": -0.4819915294647217
+    },
+    {
+      "symbol": "SBC",
+      "score": -0.48323118686676025
+    },
+    {
+      "symbol": "SGDJ",
+      "score": -0.5293737781221642
+    },
+    {
+      "symbol": "UVXY",
+      "score": -0.5295551419258118
+    },
+    {
+      "symbol": "HOWL",
+      "score": -0.531101405620575
+    },
+    {
+      "symbol": "KEN",
+      "score": -0.5311490954562597
+    },
+    {
+      "symbol": "AVGO",
+      "score": -0.5394900441169739
+    },
+    {
+      "symbol": "BLOK",
+      "score": -0.5685091018676758
+    },
+    {
+      "symbol": "TSM",
+      "score": -0.5736411809921265
+    },
+    {
+      "symbol": "SMCI",
+      "score": -0.5772014856338501
+    },
+    {
+      "symbol": "MSTR",
+      "score": -0.5832894444465637
+    },
+    {
+      "symbol": "CROX",
+      "score": -0.5836789011955261
+    },
+    {
+      "symbol": "NVDA",
+      "score": -0.5971457958221436
+    },
+    {
+      "symbol": "MNRO",
+      "score": -0.6012879014015198
+    },
+    {
+      "symbol": "TSLA",
+      "score": -0.6022567749023438
+    },
+    {
+      "symbol": "GAMB",
+      "score": -0.6060391664505005
+    },
+    {
+      "symbol": "VERA",
+      "score": -0.6119029521942139
+    },
+    {
+      "symbol": "CWCO",
+      "score": -0.6130660176277161
+    },
+    {
+      "symbol": "MOD",
+      "score": -0.615911602973938
+    },
+    {
+      "symbol": "VBNK",
+      "score": -0.6162890791893005
+    },
+    {
+      "symbol": "SHC",
+      "score": -0.6247398257255554
+    },
+    {
+      "symbol": "OMF",
+      "score": -0.6268638372421265
+    },
+    {
+      "symbol": "SYF",
+      "score": -0.6301674842834473
+    },
+    {
+      "symbol": "PAYC",
+      "score": -0.6359491348266602
+    },
+    {
+      "symbol": "HWKN",
+      "score": -0.6411622166633606
+    },
+    {
+      "symbol": "MEI",
+      "score": -0.6419313549995422
+    },
+    {
+      "symbol": "RIOT",
+      "score": -0.6493783593177795
+    },
+    {
+      "symbol": "AMZN",
+      "score": -0.6576594710350037
+    },
+    {
+      "symbol": "YINN",
+      "score": -0.6577834486961365
+    },
+    {
+      "symbol": "META",
+      "score": -0.6580198407173157
+    },
+    {
+      "symbol": "TIPT",
+      "score": -0.6624085903167725
+    },
+    {
+      "symbol": "COIN",
+      "score": -0.6643300652503967
+    },
+    {
+      "symbol": "QLYS",
+      "score": -0.675957202911377
+    },
+    {
+      "symbol": "GMVHY",
+      "score": -0.6764407753944397
+    },
+    {
+      "symbol": "NOW",
+      "score": -0.6781798005104065
+    },
+    {
+      "symbol": "CHGCY",
+      "score": -0.6920367479324341
+    },
+    {
+      "symbol": "FICO",
+      "score": -0.7033438086509705
+    },
+    {
+      "symbol": "GSM",
+      "score": -0.7069539427757263
+    }
+  ],
+  "top_short_rankings": [
+    {
+      "symbol": "GSM",
+      "score": -0.7069539427757263
+    },
+    {
+      "symbol": "FICO",
+      "score": -0.7033438086509705
+    },
+    {
+      "symbol": "CHGCY",
+      "score": -0.6920367479324341
+    },
+    {
+      "symbol": "NOW",
+      "score": -0.6781798005104065
+    },
+    {
+      "symbol": "GMVHY",
+      "score": -0.6764407753944397
+    },
+    {
+      "symbol": "QLYS",
+      "score": -0.675957202911377
+    },
+    {
+      "symbol": "COIN",
+      "score": -0.6643300652503967
+    },
+    {
+      "symbol": "TIPT",
+      "score": -0.6624085903167725
+    },
+    {
+      "symbol": "META",
+      "score": -0.6580198407173157
+    },
+    {
+      "symbol": "YINN",
+      "score": -0.6577834486961365
+    },
+    {
+      "symbol": "AMZN",
+      "score": -0.6576594710350037
+    },
+    {
+      "symbol": "RIOT",
+      "score": -0.6493783593177795
+    },
+    {
+      "symbol": "MEI",
+      "score": -0.6419313549995422
+    },
+    {
+      "symbol": "HWKN",
+      "score": -0.6411622166633606
+    },
+    {
+      "symbol": "PAYC",
+      "score": -0.6359491348266602
+    },
+    {
+      "symbol": "SYF",
+      "score": -0.6301674842834473
+    },
+    {
+      "symbol": "OMF",
+      "score": -0.6268638372421265
+    },
+    {
+      "symbol": "SHC",
+      "score": -0.6247398257255554
+    },
+    {
+      "symbol": "VBNK",
+      "score": -0.6162890791893005
+    },
+    {
+      "symbol": "MOD",
+      "score": -0.615911602973938
+    },
+    {
+      "symbol": "CWCO",
+      "score": -0.6130660176277161
+    },
+    {
+      "symbol": "VERA",
+      "score": -0.6119029521942139
+    },
+    {
+      "symbol": "GAMB",
+      "score": -0.6060391664505005
+    },
+    {
+      "symbol": "TSLA",
+      "score": -0.6022567749023438
+    },
+    {
+      "symbol": "MNRO",
+      "score": -0.6012879014015198
+    },
+    {
+      "symbol": "NVDA",
+      "score": -0.5971457958221436
+    },
+    {
+      "symbol": "CROX",
+      "score": -0.5836789011955261
+    },
+    {
+      "symbol": "MSTR",
+      "score": -0.5832894444465637
+    },
+    {
+      "symbol": "SMCI",
+      "score": -0.5772014856338501
+    },
+    {
+      "symbol": "TSM",
+      "score": -0.5736411809921265
+    },
+    {
+      "symbol": "BLOK",
+      "score": -0.5685091018676758
+    },
+    {
+      "symbol": "AVGO",
+      "score": -0.5394900441169739
+    },
+    {
+      "symbol": "KEN",
+      "score": -0.5311490954562597
+    },
+    {
+      "symbol": "HOWL",
+      "score": -0.531101405620575
+    },
+    {
+      "symbol": "UVXY",
+      "score": -0.5295551419258118
+    },
+    {
+      "symbol": "SGDJ",
+      "score": -0.5293737781221642
+    },
+    {
+      "symbol": "SBC",
+      "score": -0.48323118686676025
+    },
+    {
+      "symbol": "LUMN",
+      "score": -0.4819915294647217
+    },
+    {
+      "symbol": "ATAT",
+      "score": -0.46991080045700073
+    },
+    {
+      "symbol": "PLTR",
+      "score": -0.45813554525375366
+    },
+    {
+      "symbol": "DMRC",
+      "score": -0.41539880956625364
+    },
+    {
+      "symbol": "CJEWY",
+      "score": -0.3924600392292714
+    },
+    {
+      "symbol": "ZEPP",
+      "score": -0.32409703941760465
+    }
+  ],
+  "latest_prices": {
+    "AMZN": 207.6699981689453,
+    "ATAT": 35.2400016784668,
+    "AVGO": 322.1600036621094,
+    "BLOK": 52.349998474121094,
+    "CHGCY": 29.15999984741211,
+    "CJEWY": 18.549999237060547,
+    "COIN": 195.52999877929688,
+    "CROX": 77.94999694824219,
+    "CWCO": 34.72999954223633,
+    "DMRC": 6.53000020980835,
+    "FICO": 1131.219970703125,
+    "GAMB": 4.210000038146973,
+    "GMVHY": 7.300000190734863,
+    "GSM": 4.570000171661377,
+    "HOWL": 0.7797999978065491,
+    "HWKN": 139.8800048828125,
+    "KEN": 78.37000274658203,
+    "LUMN": 6.639999866485596,
+    "MEI": 5.130000114440918,
+    "META": 613.7100219726562,
+    "MNRO": 15.305000305175781,
+    "MOD": 188.5399932861328,
+    "MSTR": 139.6699981689453,
+    "NOW": 113.62000274658203,
+    "NVDA": 180.25,
+    "OMF": 52.060001373291016,
+    "PAYC": 125.70999908447266,
+    "PLTR": 150.9499969482422,
+    "QLYS": 99.70999908447266,
+    "RIOT": 14.039999961853027,
+    "SBC": 3.559999942779541,
+    "SGDJ": 93.0199966430664,
+    "SHC": 13.414999961853027,
+    "SMCI": 30.75,
+    "SYF": 63.779998779296875,
+    "TIPT": 16.25,
+    "TSLA": 391.20001220703125,
+    "TSM": 338.30999755859375,
+    "UVXY": 52.290000915527344,
+    "VBNK": 13.930000305175781,
+    "VERA": 39.959999084472656,
+    "YINN": 34.40999984741211,
+    "ZEPP": 20.829999923706055
+  }
+}
