@@ -1,11 +1,11 @@
 {
-  "id": "seasthaalores/alpaca-swing-v7",
+  "id": "seasthaalores/alpaca-swing-v7-singularity",
   "title": "Alpaca Swing V7 Singularity",
   "code_file": "run_discovery.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": "true",
-  "enable_gpu": "true",
+  "enable_gpu": "false",
   "enable_internet": "true",
   "dataset_sources": [],
   "competition_sources": [],
