@@ -8,6 +8,7 @@ echo Logs are saved to data/kaggle_scheduler.log and data/kaggle_pull.log
 mkdir data 2>nul
 
 title Daily Kaggle Discovery Automation
+python scripts/setup_kaggle_creds.py
 python scripts/schedule_kaggle.py
 
 pause
