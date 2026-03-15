@@ -1,0 +1,5 @@
+# 1. Sync Discovery Data from GitHub (Run after Kaggle finishes)
+0 6 * * 1-5 cd /home/santiago/alpaca-trading-algo && git pull origin main >> git_sync.log 2>&1
+
+# 2. Run Trading Engine at 10:00 AM EST (Mon-Fri)
+0 10 * * 1-5 cd /home/santiago/alpaca-trading-algo && /usr/bin/python3 run_alpaca_live_trade.py >> trading.log 2>&1

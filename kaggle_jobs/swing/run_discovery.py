@@ -313,42 +313,35 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
     if isinstance(df_raw.columns, pd.MultiIndex): df_raw.columns = df_raw.columns.get_level_values(0)
     if tracker: tracker.advance(1, phase=f"Downloaded data for {len(df_raw.columns)} valid stocks", force=True)
 
-    # V8 INTRADAY OPTIMIZATION: We NEED volatility to make intraday profit!
-    # Instead of dropping the most volatile stocks (which is for swing trading),
-    # we DROP the bottom 50% (the flat, dead stocks) and keep the highly active ones,
-    # stripping only the top 1% to avoid hyper-toxic anomalies.
+    # V7 SWING OPTIMIZATION: We want stable, causal growth for monthly swings!
+    # As discovered in V7 Research, we drop the top 10% toxic anomalies
+    # and keep the flat/stable ones for safety.
     returns = df_raw.pct_change().dropna()
     volatility = returns.std() * np.sqrt(252)
-    lower_bound = volatility.quantile(0.50) # Drop bottom 50% dead stocks
-    upper_bound = volatility.quantile(0.99) # Drop top 1% anomalies
-    
-    optimized_universe = volatility[(volatility >= lower_bound) & (volatility <= upper_bound)].index.tolist()
+    vol_threshold = volatility.quantile(0.90) # Keep bottom 90%
+    optimized_universe = volatility[volatility <= vol_threshold].index.tolist()
     df_opt = df_raw[optimized_universe]
 
     if tracker:
-        tracker.advance(1, phase=f"V8 Intraday: Filtered to {len(optimized_universe)} highly volatile symbols", force=True)
+        tracker.advance(1, phase=f"V7 Swing: Filtered to {len(optimized_universe)} highly volatile symbols", force=True)
         tracker.add_total(len(optimized_universe) * 2 + 3)
         tracker.set_phase("Running Framework 9 causal discovery")
 
-    # Fast causal threshold for intraday noise adaptation
-    oracle = TitanOracle(df_opt, mi_threshold=0.015, max_lag=1, tracker=tracker)
+    # Standard causal threshold for swing trading stability
+    oracle = TitanOracle(df_opt, mi_threshold=0.01, max_lag=2, tracker=tracker)
     skeleton = oracle.build_skeleton()
     dag = oracle.orient_edges(skeleton)
 
-    if tracker: tracker.advance(1, phase="Preparing V8 Intraday node features", force=True)
+    if tracker: tracker.advance(1, phase="Preparing V7 Swing node features", force=True)
     node_features = {}
     for symbol in optimized_universe:
-        # V8 Intraday Features: Short-term momentum is king for day trading
-        momentum_1d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-2]) - 1
-        momentum_5d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-6]) - 1
-        # Intraday ATR approximation (historical proxy)
-        vol_5d = df_opt[symbol].tail(5).pct_change().std()
-        
-        node_features[symbol] = [momentum_1d, momentum_5d, vol_5d]
-        if tracker: tracker.advance(1, phase="Preparing V8 Intraday node features")
+        # V7 Swing Features: Longer-term momentum and structural stability
+        momentum = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-20]) - 1
+        volatility_20d = df_opt[symbol].tail(20).pct_change().std()
+        node_features[symbol] = [momentum, volatility_20d]
+        if tracker: tracker.advance(1, phase="Preparing V7 Swing node features")
 
-    # Input dim upgraded from 2 to 3 for V8
-    gnn_model = GraphDynamicsEngine(input_dim=3, hidden_dim=64, num_layers=3).to(DEVICE)
+    gnn_model = GraphDynamicsEngine(input_dim=2, hidden_dim=64, num_layers=3).to(DEVICE)
     gnn_sim = InterventionSimulator(model=gnn_model, graph=dag, node_features=node_features)
 
     expected_returns = {}

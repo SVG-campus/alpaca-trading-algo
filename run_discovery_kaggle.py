@@ -5,6 +5,20 @@ import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+# Set environment variables for Kaggle runtime
+os.environ["APCA_PAPER_API_KEY_ID"] = "PKXXY6KOXKWE6B3LJXSFXJSE3Y"
+os.environ["APCA_PAPER_API_SECRET_KEY"] = "8jy1LRChJra9FTtHqb7J3s1Gt7V4SWxy6hohYQ9egDFh"
+
+# Kaggle automatically saves files from the current directory
+CACHE_DIR = Path(".")
+CACHE_PATH = CACHE_DIR / "latest_discovery.json"
+HISTORY_PATH = CACHE_DIR / "discovery_history.csv"
+
+# Pre-install missing packages for the Kaggle environment
+import subprocess
+import sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "alpaca-py", "torch-geometric", "yfinance", "networkx", "scikit-learn", "pandas", "numpy"])
+
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -14,23 +28,19 @@ import torch.nn.functional as F
 import yfinance as yf
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import AssetClass, AssetStatus
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.feature_selection import mutual_info_regression
-from joblib import Parallel, delayed
 from torch_geometric.data import Data
 from torch_geometric.nn import GATConv, GCNConv
 
 warnings.filterwarnings("ignore")
 
-DEVICE = torch.device("cpu")
-CACHE_DIR = Path("data")
-CACHE_PATH = CACHE_DIR / "latest_discovery.json"
-HISTORY_PATH = CACHE_DIR / "discovery_history.csv"
+# Force GPU if available
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {DEVICE}")
 
 
 class ProgressTracker:
-    """Simple terminal progress bar with ETA for long local discovery runs."""
-
     def __init__(self, bar_width: int = 30):
         self.bar_width = bar_width
         self.start_time = time.time()
@@ -62,15 +72,13 @@ class ProgressTracker:
 
     def render(self, force: bool = False):
         now = time.time()
-        if not force and now - self.last_render < 0.2:
+        if not force and now - self.last_render < 5.0:  # Print less often on Kaggle
             return
 
         total = max(self.total_units, 1)
         completed = min(self.completed_units, total)
         percent = (completed / total) * 100.0
-        filled = int((completed / total) * self.bar_width)
-        bar = "#" * filled + "-" * (self.bar_width - filled)
-
+        
         elapsed = now - self.start_time
         if completed > 0:
             remaining_units = total - completed
@@ -81,10 +89,10 @@ class ProgressTracker:
 
         elapsed_text = self._format_duration(elapsed)
         message = (
-            f"\r[{bar}] {percent:9.4f}% | elapsed {elapsed_text} | "
+            f"[{percent:9.4f}%] elapsed {elapsed_text} | "
             f"ETA {eta_text} | {self.phase}"
         )
-        print(message, end="", flush=True)
+        print(message, flush=True)
         self.last_render = now
 
     @staticmethod
@@ -103,8 +111,6 @@ class ProgressTracker:
 
 
 class TitanOracle:
-    """Framework 9 causal discovery engine."""
-
     def __init__(self, data: pd.DataFrame, mi_threshold=0.05, max_lag=2, tracker: ProgressTracker | None = None):
         self.df = data.copy()
         self.nodes = list(data.columns)
@@ -121,18 +127,15 @@ class TitanOracle:
             )[0]
 
         z_frame = self.df[z_list]
-        # Use a faster regressor with fewer estimators to avoid crushing the CPU
-        model_x = RandomForestRegressor(
-            n_estimators=10,
+        model_x = HistGradientBoostingRegressor(
+            max_iter=50,
             max_depth=3,
             random_state=42,
-            n_jobs=1
         ).fit(z_frame, self.df[x])
-        model_y = RandomForestRegressor(
-            n_estimators=10,
+        model_y = HistGradientBoostingRegressor(
+            max_iter=50,
             max_depth=3,
             random_state=42,
-            n_jobs=1
         ).fit(z_frame, self.df[y])
 
         res_x = self.df[x] - model_x.predict(z_frame)
@@ -156,40 +159,22 @@ class TitanOracle:
             self.tracker.add_total(total_edges)
             self.tracker.set_phase("Framework 9 skeleton discovery")
 
-        def process_edge(u, v):
-            # First check direct CMI
-            if self._cmi(u, v, []) < self.mi_threshold:
-                return (u, v, False)
-            # Then check conditioned on 1 neighbor (simplified from checking all to speed up)
-            # Find common neighbors or just some neighbors to condition on
-            # We'll test up to 2 random neighbors to save compute
-            neighbors = [n for n in self.nodes if n != u and n != v]
-            np.random.shuffle(neighbors)
-            test_neighbors = neighbors[:2]
-            
-            for neighbor in test_neighbors:
-                if self._cmi(u, v, [neighbor]) < self.mi_threshold:
-                    return (u, v, False)
-            return (u, v, True)
-
-        # Run edges in parallel batches
-        batch_size = 50
         last_reported = 0
-        
-        for i in range(0, total_edges, batch_size):
-            batch = all_edges[i:i + batch_size]
-            results = Parallel(n_jobs=-1, prefer="threads")(
-                delayed(process_edge)(u, v) for u, v in batch
-            )
-            for u, v, keep in results:
-                if not keep and skeleton.has_edge(u, v):
-                    skeleton.remove_edge(u, v)
-                    
-            if self.tracker:
-                current_idx = min(i + batch_size, total_edges)
-                if current_idx == total_edges or current_idx - last_reported >= max(1, total_edges // 200):
-                    self.tracker.advance(current_idx - last_reported)
-                    last_reported = current_idx
+        for idx, (u, v) in enumerate(all_edges, start=1):
+            if self._cmi(u, v, []) < self.mi_threshold:
+                skeleton.remove_edge(u, v)
+            else:
+                neighbors = list(set(skeleton.neighbors(u)) - {v})
+                for neighbor in neighbors:
+                    if self._cmi(u, v, [neighbor]) < self.mi_threshold:
+                        skeleton.remove_edge(u, v)
+                        break
+
+            if self.tracker and (
+                idx == total_edges or idx - last_reported >= max(1, total_edges // 50)
+            ):
+                self.tracker.advance(idx - last_reported)
+                last_reported = idx
 
         return skeleton
 
@@ -201,55 +186,44 @@ class TitanOracle:
             self.tracker.add_total(total_edges)
             self.tracker.set_phase("Framework 9 edge orientation")
 
-        def orient_single_edge(u, v):
+        last_reported = 0
+        for idx, (u, v) in enumerate(edges, start=1):
             x_vals, y_vals = self.df[[u]], self.df[v]
 
-            model_xy = RandomForestRegressor(
-                n_estimators=10,
+            model_xy = HistGradientBoostingRegressor(
+                max_iter=50,
                 max_depth=3,
                 random_state=42,
-                n_jobs=1
             ).fit(x_vals, y_vals)
             res_y = y_vals - model_xy.predict(x_vals)
             mi_xy = mutual_info_regression(self.df[[u]], np.abs(res_y))[0]
 
-            model_yx = RandomForestRegressor(
-                n_estimators=10,
+            model_yx = HistGradientBoostingRegressor(
+                max_iter=50,
                 max_depth=3,
                 random_state=42,
-                n_jobs=1
             ).fit(self.df[[v]], self.df[u])
             res_x = self.df[u] - model_yx.predict(self.df[[v]])
             mi_yx = mutual_info_regression(self.df[[v]], np.abs(res_x))[0]
 
-            return (u, v) if mi_xy < mi_yx else (v, u)
+            if mi_xy < mi_yx:
+                self.graph.add_edge(u, v)
+            else:
+                self.graph.add_edge(v, u)
 
-        batch_size = 50
-        last_reported = 0
-        
-        for i in range(0, total_edges, batch_size):
-            batch = edges[i:i + batch_size]
-            results = Parallel(n_jobs=-1, prefer="threads")(
-                delayed(orient_single_edge)(u, v) for u, v in batch
-            )
-            for src, dst in results:
-                self.graph.add_edge(src, dst)
-                
-            if self.tracker:
-                current_idx = min(i + batch_size, total_edges)
-                if current_idx == total_edges or current_idx - last_reported >= max(1, total_edges // 200):
-                    self.tracker.advance(current_idx - last_reported)
-                    last_reported = current_idx
+            if self.tracker and (
+                idx == total_edges or idx - last_reported >= max(1, total_edges // 50)
+            ):
+                self.tracker.advance(idx - last_reported)
+                last_reported = idx
 
-        # We skip exact cycle breaking (nx.simple_cycles) because it has O((N+E) * C) complexity, 
-        # and dense graphs can have billions of cycles, hanging the script.
-        # Instead, we just return the graph and let GNN handle cyclic propagation.
+        for cycle in list(nx.simple_cycles(self.graph)):
+            self.graph.remove_edge(cycle[0], cycle[1])
+
         return self.graph
 
 
 class GraphDynamicsEngine(nn.Module):
-    """Framework 6 GNN forecaster."""
-
     def __init__(self, input_dim: int, hidden_dim: int = 64, num_layers: int = 3, num_heads: int = 4):
         super().__init__()
         self.input_proj = nn.Linear(input_dim, hidden_dim)
@@ -281,8 +255,6 @@ class GraphDynamicsEngine(nn.Module):
 
 
 class InterventionSimulator:
-    """Propagates shocks through the discovered causal graph."""
-
     def __init__(self, model: GraphDynamicsEngine, graph: nx.DiGraph, node_features: dict[str, list[float]]):
         self.model = model.to(DEVICE)
         self.original_graph = graph
@@ -330,18 +302,8 @@ class InterventionSimulator:
 
 
 def load_discovery_client():
-    api_key = (
-        os.environ.get("DISCOVERY_APCA_PAPER_API_KEY_ID")
-        or os.environ.get("APCA_PAPER_API_KEY_ID")
-        or os.environ.get("MAX_APCA_PAPER_API_KEY_ID")
-        or os.environ.get("ALPACA_API_KEY")
-    )
-    api_secret = (
-        os.environ.get("DISCOVERY_APCA_PAPER_API_SECRET_KEY")
-        or os.environ.get("APCA_PAPER_API_SECRET_KEY")
-        or os.environ.get("MAX_APCA_PAPER_API_SECRET_KEY")
-        or os.environ.get("ALPACA_SECRET_KEY")
-    )
+    api_key = os.environ.get("APCA_PAPER_API_KEY_ID")
+    api_secret = os.environ.get("APCA_PAPER_API_SECRET_KEY")
 
     if not api_key or not api_secret:
         print("ERROR: discovery credentials not found; skipping cache refresh.")
@@ -421,6 +383,9 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
         )
         tracker.add_total(len(optimized_universe) * 2 + 3)
         tracker.set_phase("Running Framework 9 causal discovery")
+    
+    # We will use GPU for HistGradientBoostingRegressor by falling back to fast parallel CPUs
+    # since HistGradientBoostingRegressor runs well on Kaggle CPU cores
     oracle = TitanOracle(df_opt, mi_threshold=0.01, max_lag=2, tracker=tracker)
     skeleton = oracle.build_skeleton()
     dag = oracle.orient_edges(skeleton)

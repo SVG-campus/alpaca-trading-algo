@@ -34,6 +34,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # If the file doesn't exist yet, touching it ensures we can add it
+          touch trading_history_logs_max-paper.csv
           git add trading_history_logs_max-paper.csv
           
           # Only commit if there are changes
