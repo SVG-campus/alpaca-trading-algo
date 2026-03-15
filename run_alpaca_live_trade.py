@@ -18,9 +18,18 @@ logging.basicConfig(
     ]
 )
 
+# Parse .env file manually so we don't need python-dotenv
+env_vars = {}
+if os.path.exists('.env'):
+    with open('.env', 'r') as f:
+        for line in f:
+            if '=' in line and not line.strip().startswith('#'):
+                key, val = line.strip().split('=', 1)
+                env_vars[key.strip()] = val.strip().strip('"').strip("'")
+
 # We use APCA_LIVE_API_KEY_ID since this is real money!
-API_KEY = os.environ.get('APCA_LIVE_API_KEY_ID')
-API_SECRET = os.environ.get('APCA_LIVE_API_SECRET_KEY')
+API_KEY = env_vars.get('APCA_LIVE_API_KEY_ID') or os.environ.get('APCA_LIVE_API_KEY_ID')
+API_SECRET = env_vars.get('APCA_LIVE_API_SECRET_KEY') or os.environ.get('APCA_LIVE_API_SECRET_KEY')
 CACHE_FILE = 'data/intraday/data/latest_discovery.json'
 
 def get_trading_client():
@@ -72,6 +81,7 @@ def close_all_positions(client: TradingClient):
 def execute_intraday_trade():
     client = get_trading_client()
     if not client:
+        time.sleep(60)
         return
 
     # 1. Wait for market to be open
