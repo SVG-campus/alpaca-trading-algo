@@ -308,25 +308,45 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
     end_date = datetime.now()
     start_date = end_date - timedelta(days=730)
     if tracker: tracker.set_phase(f"Downloading 2-year data for {len(raw_universe)} stocks")
-    df_raw = yf.download(raw_universe, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), auto_adjust=True, progress=False)["Close"]
-    df_raw = df_raw.dropna(axis=1)
-    if isinstance(df_raw.columns, pd.MultiIndex): df_raw.columns = df_raw.columns.get_level_values(0)
+    
+    # V9: Download Open, High, Low, Close, Volume
+    data_raw = yf.download(raw_universe, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), auto_adjust=True, progress=False)
+    df_raw = data_raw["Close"].dropna(axis=1)
+    df_volume = data_raw["Volume"].dropna(axis=1)
+    
+    if isinstance(df_raw.columns, pd.MultiIndex): 
+        df_raw.columns = df_raw.columns.get_level_values(0)
+        df_volume.columns = df_volume.columns.get_level_values(0)
+        
+    # Ensure matching columns
+    common_cols = list(set(df_raw.columns) & set(df_volume.columns))
+    df_raw = df_raw[common_cols]
+    df_volume = df_volume[common_cols]
+    
     if tracker: tracker.advance(1, phase=f"Downloaded data for {len(df_raw.columns)} valid stocks", force=True)
 
-    # V8 INTRADAY OPTIMIZATION: We NEED volatility to make intraday profit!
-    # Instead of dropping the most volatile stocks (which is for swing trading),
-    # we DROP the bottom 50% (the flat, dead stocks) and keep the highly active ones,
-    # stripping only the top 1% to avoid hyper-toxic anomalies.
+    # V9 INTRADAY OPTIMIZATION: High Volatility + High RVOL
     returns = df_raw.pct_change().dropna()
     volatility = returns.std() * np.sqrt(252)
     lower_bound = volatility.quantile(0.50) # Drop bottom 50% dead stocks
     upper_bound = volatility.quantile(0.99) # Drop top 1% anomalies
     
-    optimized_universe = volatility[(volatility >= lower_bound) & (volatility <= upper_bound)].index.tolist()
+    # RVOL Calculation
+    vol_sma_20 = df_volume.rolling(20).mean()
+    rvol_latest = (df_volume.iloc[-1] / vol_sma_20.iloc[-1]).fillna(1.0)
+    
+    # Require decent RVOL (> 1.0) to even be considered a candidate
+    rvol_universe = rvol_latest[rvol_latest > 1.0].index.tolist()
+    vol_universe = volatility[(volatility >= lower_bound) & (volatility <= upper_bound)].index.tolist()
+    
+    optimized_universe = list(set(rvol_universe) & set(vol_universe))
+    if len(optimized_universe) < 5: # Fallback if too strict
+        optimized_universe = vol_universe
+        
     df_opt = df_raw[optimized_universe]
 
     if tracker:
-        tracker.advance(1, phase=f"V8 Intraday: Filtered to {len(optimized_universe)} highly volatile symbols", force=True)
+        tracker.advance(1, phase=f"V9 Intraday: Filtered to {len(optimized_universe)} highly volatile/RVOL symbols", force=True)
         tracker.add_total(len(optimized_universe) * 2 + 3)
         tracker.set_phase("Running Framework 9 causal discovery")
 
@@ -335,20 +355,20 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
     skeleton = oracle.build_skeleton()
     dag = oracle.orient_edges(skeleton)
 
-    if tracker: tracker.advance(1, phase="Preparing V8 Intraday node features", force=True)
+    if tracker: tracker.advance(1, phase="Preparing V9 Intraday node features", force=True)
     node_features = {}
     for symbol in optimized_universe:
-        # V8 Intraday Features: Short-term momentum is king for day trading
+        # V9 Intraday Features: Momentum + RVOL
         momentum_1d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-2]) - 1
         momentum_5d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-6]) - 1
-        # Intraday ATR approximation (historical proxy)
         vol_5d = df_opt[symbol].tail(5).pct_change().std()
+        rvol = rvol_latest.get(symbol, 1.0)
         
-        node_features[symbol] = [momentum_1d, momentum_5d, vol_5d]
-        if tracker: tracker.advance(1, phase="Preparing V8 Intraday node features")
+        node_features[symbol] = [momentum_1d, momentum_5d, vol_5d, rvol]
+        if tracker: tracker.advance(1, phase="Preparing V9 Intraday node features")
 
-    # Input dim upgraded from 2 to 3 for V8
-    gnn_model = GraphDynamicsEngine(input_dim=3, hidden_dim=64, num_layers=3).to(DEVICE)
+    # Input dim upgraded from 3 to 4 for V9
+    gnn_model = GraphDynamicsEngine(input_dim=4, hidden_dim=64, num_layers=3).to(DEVICE)
     gnn_sim = InterventionSimulator(model=gnn_model, graph=dag, node_features=node_features)
 
     expected_returns = {}

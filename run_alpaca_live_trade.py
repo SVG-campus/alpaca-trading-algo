@@ -1,7 +1,10 @@
 import os
+import os
+import glob
 import json
 import time
 import logging
+import csv
 from datetime import datetime, timedelta, timezone
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest, TakeProfitRequest, StopLossRequest
@@ -66,10 +69,23 @@ def time_to_market_close(client: TradingClient) -> float:
         return 0.0
     return (clock.next_close - clock.timestamp).total_seconds()
 
-def close_all_positions(client: TradingClient):
+def log_trade_to_ledger(symbol, action, reason, pnl_pct=0.0):
+    ledger_file = "data/intraday/data/intraday_trade_ledger.csv"
+    file_exists = os.path.isfile(ledger_file)
+    with open(ledger_file, 'a') as f:
+        if not file_exists:
+            f.write("Timestamp_UTC,Symbol,Action,Reason,Unrealized_PNL_Pct\n")
+        ts = datetime.now(timezone.utc).isoformat()
+        f.write(f"{ts},{symbol},{action},{reason},{pnl_pct:.4f}\n")
+
+def close_all_positions(client: TradingClient, reason="End of Day"):
     """Closes all open positions before market close."""
-    logging.info("End of day reached. Closing all open positions for intraday strategy.")
+    logging.info(f"{reason} reached. Closing all open positions for intraday strategy.")
     try:
+        positions = client.get_all_positions()
+        for pos in positions:
+            log_trade_to_ledger(pos.symbol, "SELL", reason, float(pos.unrealized_plpc))
+            
         # Cancel all open orders first
         client.cancel_orders()
         # Liquidate all positions
@@ -164,6 +180,33 @@ def execute_intraday_trade():
 
     # Safety buffer: keep 5% or minimum $0.05 cash to prevent margin calls
     trade_amount = cash * 0.95
+    
+    # SLIPPAGE LIMIT CHECK (1% ADV)
+    # Ensure we never trade more than 1% of the asset's average daily volume (in dollars)
+    slippage_cap = float('inf')
+    try:
+        # Find the latest slippage file in data/intraday/data/
+        slippage_files = glob.glob('data/intraday/data/slippage_1pct_adv_*.csv')
+        if slippage_files:
+            latest_slippage = max(slippage_files, key=os.path.getmtime)
+            with open(latest_slippage, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['symbol'] == long_pick:
+                        if row['cash_value_1pct_adv']:
+                            slippage_cap = float(row['cash_value_1pct_adv'])
+                        break
+            logging.info(f"Slippage Cap (1% ADV) for {long_pick}: ${slippage_cap:,.2f}")
+        else:
+            logging.warning("No slippage file found. Cannot verify liquidity ceiling. Proceeding with caution.")
+    except Exception as e:
+        logging.error(f"Error reading slippage limit: {e}")
+
+    # Enforce Slippage Cap
+    if trade_amount > slippage_cap:
+        logging.warning(f"Trade amount (${trade_amount:.2f}) EXCEEDS Slippage Cap (${slippage_cap:.2f}). Limiting trade to exactly 1% ADV!")
+        trade_amount = slippage_cap
+
     if trade_amount < 1.0:
         logging.warning(f"Not enough cash to trade securely. Have ${cash:.2f}, need at least $1.05. Using all available cash for testing: ${cash:.2f}")
         trade_amount = cash - 0.05 # Leave 5 cents just in case
@@ -172,7 +215,7 @@ def execute_intraday_trade():
             with open(state_file, 'w') as f: f.write(str(last_mtime))
             return
 
-    logging.info(f"Targeting LONG on {long_pick} with ${trade_amount:.2f}")
+    logging.info(f"Targeting LONG on {long_pick} with ${trade_amount:.2f} (Slippage Safe)")
 
     # Alpaca allows fractional shares. We can use `notional` to specify the dollar amount.
     # To maximize profit and minimize risk, we will add a bracket order.
@@ -191,6 +234,7 @@ def execute_intraday_trade():
         )
         order = client.submit_order(order_data=req)
         logging.info(f"Submitted BUY order for {long_pick}: ID {order.id}")
+        log_trade_to_ledger(long_pick, "BUY", "V9 Discovery Entry", 0.0)
         
         # Mark as traded
         with open(state_file, 'w') as f: 
@@ -201,12 +245,11 @@ def execute_intraday_trade():
         time.sleep(60)
         return
 
-    # V8 INTRADAY OPTIMIZED BRACKET TARGETS:
-    # Because our new V8 Kaggle Engine targets highly volatile short-term momentum stocks,
-    # we expand the profit target to allow runners to run, while enforcing a tight 2:1 Risk/Reward!
-    # Let's set a target of +4.5% profit and -2.0% stop loss for intraday.
-    target_profit_pct = 0.045
-    stop_loss_pct = -0.02
+    # V9 INTRADAY OPTIMIZED BRACKET TARGETS:
+    # V9 Research proves that including RVOL > 1.5 pushes optimal targets much wider!
+    # Expected Value maximizes at +8.0% Take Profit and -4.0% Stop Loss (2:1 Risk/Reward).
+    target_profit_pct = 0.08
+    stop_loss_pct = -0.04
     
     # Wait for the order to fill
     time.sleep(10)
@@ -234,10 +277,12 @@ def execute_intraday_trade():
                     if unrealized_pct >= target_profit_pct:
                         logging.info(f"TAKE PROFIT hit! (+{unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
                         client.close_position(long_pick)
+                        log_trade_to_ledger(long_pick, "SELL", "Take Profit Hit", unrealized_pct)
                         break
                     elif unrealized_pct <= stop_loss_pct:
                         logging.info(f"STOP LOSS hit! ({unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
                         client.close_position(long_pick)
+                        log_trade_to_ledger(long_pick, "SELL", "Stop Loss Hit", unrealized_pct)
                         break
         except Exception as e:
             logging.error(f"Error checking positions: {e}")

@@ -1,4 +1,7 @@
 import os
+import os
+import glob
+import csv
 import json
 import time
 import logging
@@ -51,12 +54,40 @@ def is_first_trading_day_of_month(client: TradingClient):
     # A robust way: Just check if we haven't traded this month yet, and today is an open market day!
     return True # We handle the "once per month" logic via a state file instead of strictly predicting the 1st trading day!
 
+def log_trade_to_ledger(account_name, symbol, action, qty_or_notional, reason):
+    ledger_file = "data/swing/data/swing_trade_ledger.csv"
+    file_exists = os.path.isfile(ledger_file)
+    with open(ledger_file, 'a') as f:
+        if not file_exists:
+            f.write("Timestamp_UTC,Account,Symbol,Action,QtyOrNotional,Reason\n")
+        ts = datetime.now(timezone.utc).isoformat()
+        f.write(f"{ts},{account_name},{symbol},{action},{qty_or_notional},{reason}\n")
+
+def get_slippage_cap(symbol):
+    try:
+        slippage_files = glob.glob('data/swing/data/slippage_1pct_adv_*.csv')
+        if slippage_files:
+            latest_slippage = max(slippage_files, key=os.path.getmtime)
+            with open(latest_slippage, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['symbol'] == symbol and row['cash_value_1pct_adv']:
+                        return float(row['cash_value_1pct_adv'])
+    except Exception as e:
+        logging.error(f"Error reading slippage limit for {symbol}: {e}")
+    return float('inf')
+
 def rebalance_account(client: TradingClient, discovery: dict, account_name: str):
     logging.info(f"[{account_name}] Starting monthly rebalance...")
     
     # 1. Cancel all orders and liquidate everything
     logging.info(f"[{account_name}] Liquidating all previous positions...")
     try:
+        # Log sell-offs before closing
+        positions = client.get_all_positions()
+        for pos in positions:
+            log_trade_to_ledger(account_name, pos.symbol, "SELL", pos.qty, "Monthly Liquidate")
+
         client.cancel_orders()
         client.close_all_positions(cancel_orders=True)
         time.sleep(15) # Wait for settlement
@@ -92,15 +123,17 @@ def rebalance_account(client: TradingClient, discovery: dict, account_name: str)
 
     # Execute Longs (Fractional allowed)
     for symbol in top_longs:
-        if long_allocation_per_stock < 1.0: continue
+        alloc = min(long_allocation_per_stock, get_slippage_cap(symbol))
+        if alloc < 1.0: continue
         try:
             req = MarketOrderRequest(
                 symbol=symbol,
-                notional=round(long_allocation_per_stock, 2),
+                notional=round(alloc, 2),
                 side=OrderSide.BUY,
                 time_in_force=TimeInForce.DAY
             )
             client.submit_order(order_data=req)
+            log_trade_to_ledger(account_name, symbol, "BUY", round(alloc, 2), "Monthly Long")
         except Exception as e:
             logging.warning(f"[{account_name}] Failed to long {symbol}: {e}")
 
@@ -111,7 +144,8 @@ def rebalance_account(client: TradingClient, discovery: dict, account_name: str)
         price = latest_prices.get(symbol)
         if not price or price <= 0: continue
         
-        qty = int(short_allocation_per_stock // price)
+        alloc = min(short_allocation_per_stock, get_slippage_cap(symbol))
+        qty = int(alloc // price)
         if qty < 1: continue
         
         try:
@@ -122,6 +156,7 @@ def rebalance_account(client: TradingClient, discovery: dict, account_name: str)
                 time_in_force=TimeInForce.DAY
             )
             client.submit_order(order_data=req)
+            log_trade_to_ledger(account_name, symbol, "SHORT", qty, "Monthly Short")
         except Exception as e:
             logging.warning(f"[{account_name}] Failed to short {symbol}: {e}")
 
