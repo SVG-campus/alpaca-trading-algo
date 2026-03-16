@@ -248,8 +248,8 @@ def execute_intraday_trade():
     # V9 INTRADAY OPTIMIZED BRACKET TARGETS:
     # V9 Research proves that including RVOL > 1.5 pushes optimal targets much wider!
     # Expected Value maximizes at +8.0% Take Profit and -4.0% Stop Loss (2:1 Risk/Reward).
-    target_profit_pct = 0.08
-    stop_loss_pct = -0.04
+    target_profit_pct = 0.140
+    stop_loss_pct = -0.090
     
     # Wait for the order to fill
     time.sleep(10)
