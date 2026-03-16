@@ -180,31 +180,12 @@ def execute_monthly_swing():
         time.sleep(3600)
         return
 
-    # To coordinate with the Intraday trader, wait until 7:00 AM PST. 
-    # Market opens at 6:30 AM PST. Intraday trader trades at 6:35 AM PST. 
-    # This completely separates API limits.
-    now = datetime.now()
-    if now.hour < 7:
-        logging.info("Waiting for 7:00 AM PST to avoid API collision with Intraday trader...")
-        time.sleep(1800)
-        return
-
-    # Check if market is open today
-    # We just need one client to check the clock
     checker_client = paper_client if paper_client else max_client
-    try:
-        clock = checker_client.get_clock()
-        if not clock.is_open:
-            wait_time = (clock.next_open - clock.timestamp).total_seconds()
-            logging.info(f"Market closed. Waiting {wait_time / 3600:.2f} hours for next open.")
-            time.sleep(min(wait_time, 3600))
-            return
-    except Exception as e:
-        logging.error(f"Clock check failed: {e}")
-        time.sleep(600)
+    if not checker_client:
         return
 
     # Monthly execution check
+    now = datetime.now()
     current_month = now.strftime('%Y-%m')
     state_file = "data/swing/last_traded_month.txt"
     last_traded_month = ""
@@ -215,6 +196,30 @@ def execute_monthly_swing():
     if last_traded_month == current_month:
         logging.info(f"Already traded for month {current_month}. Sleeping for 24 hours...")
         time.sleep(86400)
+        return
+
+    # To coordinate with the Intraday trader, wait until 7:00 AM PST. 
+    # Market opens at 6:30 AM PST. Intraday trader trades at 6:35 AM PST. 
+    # This completely separates API limits.
+    if now.hour < 7:
+        logging.info("Waiting for 7:00 AM PST to avoid API collision with Intraday trader...")
+        # Sleep until 7:00 AM exactly (assuming PST local time)
+        target_time = now.replace(hour=7, minute=0, second=0, microsecond=0)
+        sleep_seconds = (target_time - now).total_seconds()
+        time.sleep(sleep_seconds)
+        return
+
+    # Check if market is open today
+    try:
+        clock = checker_client.get_clock()
+        if not clock.is_open:
+            wait_time = (clock.next_open - clock.timestamp).total_seconds()
+            logging.info(f"Market closed. Waiting {wait_time / 3600:.2f} hours for next open.")
+            time.sleep(min(wait_time, 3600))
+            return
+    except Exception as e:
+        logging.error(f"Clock check failed: {e}")
+        time.sleep(600)
         return
 
     # We haven't traded this month, and the market is OPEN, and it's past 7:00 AM PST!
