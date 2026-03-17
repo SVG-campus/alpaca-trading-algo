@@ -11,17 +11,38 @@ os.system("pip install -q alpaca-py torch-geometric yfinance networkx scikit-lea
 from kaggle_secrets import UserSecretsClient
 
 # IMPORTANT: Provide your credentials here:
-try:
-    user_secrets = UserSecretsClient()
-    os.environ["APCA_PAPER_API_KEY_ID"] = user_secrets.get_secret("APCA_PAPER_API_KEY_ID")
-    os.environ["APCA_PAPER_API_SECRET_KEY"] = user_secrets.get_secret("APCA_PAPER_API_SECRET_KEY")
-    print("Successfully loaded Alpaca API keys from Kaggle Secrets.")
-except Exception:
-    print("Could not load from Kaggle secrets. Falling back to hardcoded keys (if set)...")
-    # FALLBACK: If Kaggle Secrets fail or are not set, it uses these below. 
-    # Make sure your notebook is PRIVATE if you leave these here!
+def load_credentials():
+    # 1. Try Kaggle Secrets (GUI mode)
+    try:
+        import kaggle_secrets
+        user_secrets = kaggle_secrets.UserSecretsClient()
+        os.environ["APCA_PAPER_API_KEY_ID"] = user_secrets.get_secret("APCA_PAPER_API_KEY_ID")
+        os.environ["APCA_PAPER_API_SECRET_KEY"] = user_secrets.get_secret("APCA_PAPER_API_SECRET_KEY")
+        print("Successfully loaded Alpaca API keys from Kaggle Secrets.")
+        return
+    except Exception as e:
+        print("Could not load from Kaggle Secrets.")
+
+    # 2. Try local .env file (Local laptop mode)
+    try:
+        if os.path.exists(".env"):
+            with open('.env', 'r') as f:
+                for line in f:
+                    if '=' in line and not line.strip().startswith('#'):
+                        key, val = line.strip().split('=', 1)
+                        os.environ[key.strip()] = val.strip().strip('"').strip("'")
+            if os.environ.get("APCA_PAPER_API_KEY_ID"):
+                print("Successfully loaded Alpaca API keys from local .env file.")
+                return
+    except Exception as e:
+        print("Could not load from .env file.")
+        
+    # 3. Hardcoded Fallback (For automated headless Kaggle API pushes)
+    print("Falling back to hardcoded keys for headless execution...")
     os.environ["APCA_PAPER_API_KEY_ID"] = "PKXXY6KOXKWE6B3LJXSFXJSE3Y"
     os.environ["APCA_PAPER_API_SECRET_KEY"] = "8jy1LRChJra9FTtHqb7J3s1Gt7V4SWxy6hohYQ9egDFh"
+
+load_credentials()
 
 
 # ==========================================
