@@ -1,5 +1,8 @@
 @echo off
 echo Starting Alpaca Live Trading Automation...
+echo Pulling latest code and discovery JSON from GitHub...
+git pull origin main
+
 echo The terminal will stay open but you can minimize it.
 echo All logs are saved to data/alpaca_trade.log as well.
 
