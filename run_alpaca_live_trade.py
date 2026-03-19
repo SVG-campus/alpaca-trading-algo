@@ -30,16 +30,17 @@ if os.path.exists('.env'):
                 key, val = line.strip().split('=', 1)
                 env_vars[key.strip()] = val.strip().strip('"').strip("'")
 
-# We use APCA_LIVE_API_KEY_ID since this is real money!
-API_KEY = env_vars.get('APCA_LIVE_API_KEY_ID') or os.environ.get('APCA_LIVE_API_KEY_ID')
-API_SECRET = env_vars.get('APCA_LIVE_API_SECRET_KEY') or os.environ.get('APCA_LIVE_API_SECRET_KEY')
+# We are testing with Paper Keys for Intraday right now to verify logic without losing money.
+API_KEY = env_vars.get('APCA_INTRA_PAPER_API_KEY_ID') or os.environ.get('APCA_INTRA_PAPER_API_KEY_ID')
+API_SECRET = env_vars.get('APCA_INTRA_PAPER_API_SECRET_KEY') or os.environ.get('APCA_INTRA_PAPER_API_SECRET_KEY')
 CACHE_FILE = 'data/intraday/data/latest_discovery.json'
 
 def get_trading_client():
     if not API_KEY or not API_SECRET:
-        logging.error("APCA_LIVE_API_KEY_ID and APCA_LIVE_API_SECRET_KEY must be set in .env")
+        logging.error("APCA_INTRA_PAPER_API_KEY_ID and APCA_INTRA_PAPER_API_SECRET_KEY must be set in .env")
         return None
-    return TradingClient(API_KEY, API_SECRET, paper=False)
+    # Switched to paper=True per your request to test without losing money
+    return TradingClient(API_KEY, API_SECRET, paper=True)
 
 def wait_for_market_open(client: TradingClient):
     """Wait until the market opens, and then wait 5 minutes to avoid volatility noise."""
@@ -124,39 +125,32 @@ def execute_intraday_trade():
         time.sleep(300)
         return
 
-    # Check if we already traded this JSON payload today
-    # We can track the generation time of the JSON
-    gen_time_str = discovery.get("generated_at_utc")
-    if not gen_time_str:
-        logging.warning("No generated_at_utc found in JSON, using modified time.")
-        last_mtime = os.path.getmtime(CACHE_FILE)
-    else:
-        try:
-            gen_time = datetime.fromisoformat(gen_time_str.replace('Z', '+00:00'))
-            last_mtime = gen_time.timestamp()
-        except:
-            last_mtime = os.path.getmtime(CACHE_FILE)
-
-    state_file = "data/last_traded_state.txt"
-    last_traded_mtime = 0.0
+    # V9 INTRADAY TRADING LOGIC
+    # We should trade ONCE per trading day.
+    # Check if we have already traded today based on Eastern Time!
+    # Because UTC could roll over mid-afternoon causing double trades.
+    # V10 FIX: Trade precisely once per trading day based on Alpaca's Clock
+    clock = client.get_clock()
+    today_str = clock.timestamp.strftime('%Y-%m-%d')
+    state_file = "data/intraday/data/last_traded_date.txt"
+    last_traded_date = ""
+    
     if os.path.exists(state_file):
         with open(state_file, 'r') as f:
-            try:
-                last_traded_mtime = float(f.read().strip())
-            except:
-                pass
-
-    if last_mtime <= last_traded_mtime:
-        logging.info("Already executed trades for this discovery generation. Waiting for next update...")
-        time.sleep(300)
+            last_traded_date = f.read().strip()
+            
+    if last_traded_date == today_str:
+        logging.info("Already executed trades for today. Sleeping until tomorrow...")
+        # Wait until market close to reset the state logically
+        time.sleep(1800)
         return
 
-    # 4. We have a new payload, execute the trade!
+    # 4. We are cleared to trade today!
     long_pick = discovery.get("long_pick")
     
     if not long_pick:
         logging.warning("No long_pick found in discovery. Skipping.")
-        with open(state_file, 'w') as f: f.write(str(last_mtime))
+        with open(state_file, 'w') as f: f.write(today_str)
         return
 
     # 5. Liquidate any existing positions to ensure we have maximum cash ready!
@@ -236,9 +230,9 @@ def execute_intraday_trade():
         logging.info(f"Submitted BUY order for {long_pick}: ID {order.id}")
         log_trade_to_ledger(long_pick, "BUY", "V9 Discovery Entry", 0.0)
         
-        # Mark as traded
+        # Mark as traded FOR TODAY so we don't buy again if the script restarts!
         with open(state_file, 'w') as f: 
-            f.write(str(last_mtime))
+            f.write(today_str)
             
     except Exception as e:
         logging.error(f"Failed to place order: {e}")
@@ -246,10 +240,9 @@ def execute_intraday_trade():
         return
 
     # V9 INTRADAY OPTIMIZED BRACKET TARGETS:
-    # V9 Research proves that including RVOL > 1.5 pushes optimal targets much wider!
-    # Expected Value maximizes at +8.0% Take Profit and -4.0% Stop Loss (2:1 Risk/Reward).
-    target_profit_pct = 0.140
-    stop_loss_pct = -0.090
+    # V9 Hyper-Optimization proved that expanding limits to 14/9 maximizes EV!
+    target_profit_pct = 0.14
+    stop_loss_pct = -0.09
     
     # Wait for the order to fill
     time.sleep(10)
@@ -269,8 +262,10 @@ def execute_intraday_trade():
                 logging.info("No open positions found. Exiting monitor loop.")
                 break
                 
+            position_found = False
             for pos in positions:
                 if pos.symbol == long_pick:
+                    position_found = True
                     unrealized_pct = float(pos.unrealized_plpc)
                     logging.info(f"Monitoring {long_pick} | Unrealized P/L: {unrealized_pct*100:.2f}% | {secs_to_close / 60:.1f} mins to close")
                     
@@ -284,6 +279,11 @@ def execute_intraday_trade():
                         client.close_position(long_pick)
                         log_trade_to_ledger(long_pick, "SELL", "Stop Loss Hit", unrealized_pct)
                         break
+            
+            if not position_found:
+                logging.info(f"Position for {long_pick} no longer exists. Exiting monitor loop.")
+                break
+
         except Exception as e:
             logging.error(f"Error checking positions: {e}")
             
