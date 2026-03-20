@@ -1,234 +1,264 @@
 {
-  "generated_at_utc": "2026-03-19T10:01:28.685337+00:00",
+  "generated_at_utc": "2026-03-20T10:01:51.878553+00:00",
   "discovery_schedule": "weekly",
   "raw_universe_count": 94,
-  "optimized_universe_count": 12,
+  "optimized_universe_count": 15,
   "raw_universe": [
     "AAPL",
-    "ACP",
-    "AEBI",
-    "AESI",
-    "AGNCO",
-    "AKAM",
+    "ADP",
+    "AMRN",
     "AMZN",
-    "ARI",
+    "AMZW",
+    "APRT",
     "AVGO",
-    "AVUS",
-    "BEP",
-    "BETZ",
-    "BGH",
-    "BYD",
-    "CFO",
-    "CNDT",
+    "AXP",
+    "BGR",
+    "BRZU",
+    "CABGY",
+    "CAPR",
+    "CBOE",
+    "CDL",
+    "CELH",
+    "CJPRY",
+    "CMF",
+    "CMRC",
+    "COF",
     "COIN",
-    "COMP",
-    "CORP",
     "COST",
-    "CWB",
-    "DFNL",
-    "DIG",
-    "DLN",
-    "DSL",
-    "ECL",
-    "EFR",
-    "EMQQ",
-    "ENTG",
-    "EPP",
-    "EQAL",
-    "EXPD",
-    "FIXD",
-    "FNOV",
-    "FRAF",
+    "CSR",
+    "DMXF",
+    "DSP",
+    "EDU",
+    "ENGN",
+    "ETHO",
+    "EU",
+    "FCF",
+    "FDMT",
+    "FLSP",
+    "FNKO",
+    "FNY",
+    "FSOL",
+    "FUND",
     "GOOGL",
-    "HFWA",
-    "HGER",
-    "HTLD",
-    "IEMG",
-    "ITGR",
-    "IWS",
+    "GXUS",
+    "HBIO",
+    "HCA",
+    "HL",
+    "HYLB",
+    "IMAX",
+    "INCR",
+    "IONS",
+    "ISRA",
+    "JEPQ",
     "JPM",
-    "JSCP",
-    "KVYO",
-    "LBAY",
-    "LITP",
-    "LRGE",
-    "LYFT",
-    "MBWM",
+    "LCID",
+    "LKFN",
+    "LLYVK",
+    "LOUP",
     "META",
-    "MLYS",
-    "MOAT",
-    "MRSK",
+    "MMKT",
+    "MNSB",
+    "MOTI",
     "MSFT",
     "MSTR",
-    "NAPR",
-    "NURE",
-    "NVAX",
+    "MUSA",
+    "NESR",
+    "NUMV",
     "NVDA",
-    "NYXH",
-    "OAIM",
-    "ONEV",
-    "PFGC",
-    "PFIX",
+    "OPK",
+    "OXLC",
+    "PANL",
+    "PCYO",
+    "PD",
     "PLTR",
-    "PNOV",
-    "PZA",
-    "QVML",
-    "RDDT",
-    "RRBI",
-    "RSSB",
-    "SHM",
+    "PTF",
+    "RANI",
+    "RMD",
+    "SBET",
+    "SBS",
+    "SJM",
     "SMCI",
-    "SPMD",
-    "SPOT",
-    "SQM",
-    "SUPN",
-    "TGLS",
-    "TIPZ",
-    "TKC",
-    "TRIP",
-    "TRTX",
+    "SMCX",
+    "SN",
+    "SOFR",
+    "SPXU",
+    "SYK",
+    "TGTX",
+    "TRAK",
     "TSLA",
-    "UNM",
-    "VCRM",
-    "VET",
-    "VIDI",
-    "VKTX",
-    "VSH",
-    "VXX",
-    "XIACY",
-    "XSHD",
-    "YJUN"
+    "TSLL",
+    "TWIN",
+    "UMH",
+    "UTHR",
+    "VDE",
+    "VGSH",
+    "VGSR",
+    "VRE",
+    "VWAPY",
+    "WINN",
+    "WTMF",
+    "XVV"
   ],
   "optimized_universe": [
-    "AKAM",
-    "BEP",
-    "CNDT",
-    "HFWA",
-    "MBWM",
-    "MLYS",
-    "MSTR",
-    "PFIX",
-    "RRBI",
-    "VET",
-    "VKTX",
-    "VXX"
+    "BRZU",
+    "DSP",
+    "FDMT",
+    "HBIO",
+    "HL",
+    "LOUP",
+    "META",
+    "OPK",
+    "PTF",
+    "RANI",
+    "SBS",
+    "SPXU",
+    "TGTX",
+    "TSLA",
+    "TSLL"
   ],
-  "long_pick": "VET",
-  "long_score": 2.1774360750364634,
-  "short_pick": "MLYS",
-  "short_score": 1.116099238395691,
+  "long_pick": "HL",
+  "long_score": 0.012483805663585841,
+  "short_pick": "OPK",
+  "short_score": -0.045874595642089844,
   "top_rankings": [
     {
-      "symbol": "VET",
-      "score": 2.1774360750364634
+      "symbol": "HL",
+      "score": 0.012483805663585841
     },
     {
-      "symbol": "AKAM",
-      "score": 2.1084515783576134
+      "symbol": "HBIO",
+      "score": -0.0124554542655756
     },
     {
-      "symbol": "BEP",
-      "score": 2.045638776039457
+      "symbol": "FDMT",
+      "score": -0.020082628620710988
     },
     {
-      "symbol": "PFIX",
-      "score": 1.8652907762271769
+      "symbol": "RANI",
+      "score": -0.028865251551946414
     },
     {
-      "symbol": "VXX",
-      "score": 1.7348240441730323
+      "symbol": "SPXU",
+      "score": -0.03221449255943298
     },
     {
-      "symbol": "MBWM",
-      "score": 1.6127784252166748
+      "symbol": "TSLA",
+      "score": -0.03408816791066599
     },
     {
-      "symbol": "HFWA",
-      "score": 1.4997847080230713
+      "symbol": "SBS",
+      "score": -0.03832371532917023
     },
     {
-      "symbol": "MSTR",
-      "score": 1.4917994737625122
+      "symbol": "PTF",
+      "score": -0.038482218980789185
     },
     {
-      "symbol": "CNDT",
-      "score": 1.4198580980300903
+      "symbol": "DSP",
+      "score": -0.03961004316806793
     },
     {
-      "symbol": "RRBI",
-      "score": 1.402859091758728
+      "symbol": "BRZU",
+      "score": -0.04052649438381195
     },
     {
-      "symbol": "VKTX",
-      "score": 1.2912936210632324
+      "symbol": "LOUP",
+      "score": -0.04068610072135925
     },
     {
-      "symbol": "MLYS",
-      "score": 1.116099238395691
+      "symbol": "TSLL",
+      "score": -0.04097330570220947
+    },
+    {
+      "symbol": "TGTX",
+      "score": -0.042454808950424194
+    },
+    {
+      "symbol": "META",
+      "score": -0.0448075532913208
+    },
+    {
+      "symbol": "OPK",
+      "score": -0.045874595642089844
     }
   ],
   "top_short_rankings": [
     {
-      "symbol": "MLYS",
-      "score": 1.116099238395691
+      "symbol": "OPK",
+      "score": -0.045874595642089844
     },
     {
-      "symbol": "VKTX",
-      "score": 1.2912936210632324
+      "symbol": "META",
+      "score": -0.0448075532913208
     },
     {
-      "symbol": "RRBI",
-      "score": 1.402859091758728
+      "symbol": "TGTX",
+      "score": -0.042454808950424194
     },
     {
-      "symbol": "CNDT",
-      "score": 1.4198580980300903
+      "symbol": "TSLL",
+      "score": -0.04097330570220947
     },
     {
-      "symbol": "MSTR",
-      "score": 1.4917994737625122
+      "symbol": "LOUP",
+      "score": -0.04068610072135925
     },
     {
-      "symbol": "HFWA",
-      "score": 1.4997847080230713
+      "symbol": "BRZU",
+      "score": -0.04052649438381195
     },
     {
-      "symbol": "MBWM",
-      "score": 1.6127784252166748
+      "symbol": "DSP",
+      "score": -0.03961004316806793
     },
     {
-      "symbol": "VXX",
-      "score": 1.7348240441730323
+      "symbol": "PTF",
+      "score": -0.038482218980789185
     },
     {
-      "symbol": "PFIX",
-      "score": 1.8652907762271769
+      "symbol": "SBS",
+      "score": -0.03832371532917023
     },
     {
-      "symbol": "BEP",
-      "score": 2.045638776039457
+      "symbol": "TSLA",
+      "score": -0.03408816791066599
     },
     {
-      "symbol": "AKAM",
-      "score": 2.1084515783576134
+      "symbol": "SPXU",
+      "score": -0.03221449255943298
     },
     {
-      "symbol": "VET",
-      "score": 2.1774360750364634
+      "symbol": "RANI",
+      "score": -0.028865251551946414
+    },
+    {
+      "symbol": "FDMT",
+      "score": -0.020082628620710988
+    },
+    {
+      "symbol": "HBIO",
+      "score": -0.0124554542655756
+    },
+    {
+      "symbol": "HL",
+      "score": 0.012483805663585841
     }
   ],
   "latest_prices": {
-    "BEP": 31.670000076293945,
-    "HFWA": 24.719999313354492,
-    "VET": 12.609999656677246,
-    "VKTX": 33.54999923706055,
-    "RRBI": 86.66999816894531,
-    "VXX": 34.68000030517578,
-    "MSTR": 140.55999755859375,
-    "PFIX": 46.04999923706055,
-    "MBWM": 49.650001525878906,
-    "CNDT": 1.159999966621399,
-    "AKAM": 108.86000061035156,
-    "MLYS": 23.899999618530273
+    "HL": 17.610000610351562,
+    "META": 606.7000122070312,
+    "DSP": 11.609999656677246,
+    "HBIO": 5.599999904632568,
+    "FDMT": 8.979999542236328,
+    "LOUP": 72.36009979248047,
+    "SPXU": 55.54999923706055,
+    "RANI": 1.149999976158142,
+    "TSLL": 12.970000267028809,
+    "PTF": 92.93000030517578,
+    "OPK": 1.1699999570846558,
+    "SBS": 29.149999618530273,
+    "TSLA": 380.29998779296875,
+    "TGTX": 30.360000610351562,
+    "BRZU": 102.0999984741211
   }
 }
