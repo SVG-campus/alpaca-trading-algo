@@ -8,20 +8,21 @@ os.system("pip install -q alpaca-py torch-geometric yfinance networkx scikit-lea
 # ==========================================
 # CELL 2: IMPORT AND CREDENTIALS
 # ==========================================
-from kaggle_secrets import UserSecretsClient
 
 # IMPORTANT: Provide your credentials here:
 def load_credentials():
     # 1. Try Kaggle Secrets (GUI mode)
     try:
-        import kaggle_secrets
-        user_secrets = kaggle_secrets.UserSecretsClient()
+        from kaggle_secrets import UserSecretsClient
+        user_secrets = UserSecretsClient()
         os.environ["APCA_PAPER_API_KEY_ID"] = user_secrets.get_secret("APCA_PAPER_API_KEY_ID")
         os.environ["APCA_PAPER_API_SECRET_KEY"] = user_secrets.get_secret("APCA_PAPER_API_SECRET_KEY")
         print("Successfully loaded Alpaca API keys from Kaggle Secrets.")
         return
+    except ImportError:
+        print("Not running inside Kaggle GUI. Trying local .env...")
     except Exception as e:
-        print("Could not load from Kaggle Secrets.")
+        print(f"Could not load from Kaggle Secrets: {e}")
 
     # 2. Try local .env file (Local laptop mode)
     try:
@@ -37,8 +38,8 @@ def load_credentials():
     except Exception as e:
         print("Could not load from .env file.")
         
-    # 3. Hardcoded Fallback (For automated headless Kaggle API pushes)
-    print("Falling back to hardcoded keys for headless execution...")
+    # 3. Hardcoded Fallback
+    print("Falling back to hardcoded keys...")
     os.environ["APCA_PAPER_API_KEY_ID"] = "PKXXY6KOXKWE6B3LJXSFXJSE3Y"
     os.environ["APCA_PAPER_API_SECRET_KEY"] = "8jy1LRChJra9FTtHqb7J3s1Gt7V4SWxy6hohYQ9egDFh"
 
@@ -75,8 +76,16 @@ warnings.filterwarnings("ignore")
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using compute device: {DEVICE}")
 
-# Kaggle Output Directory is exactly the current working directory `/kaggle/working/`
-CACHE_DIR = Path("/kaggle/working/data")
+# Output locally to the main data/swing/data directory
+cwd_path = Path(os.getcwd())
+if cwd_path.name == 'swing':
+    # Running from within kaggle_jobs/swing
+    CACHE_DIR = Path("../../data/swing/data").resolve()
+else:
+    # Running from root
+    CACHE_DIR = Path("data/swing/data").resolve()
+
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_PATH = CACHE_DIR / "latest_discovery.json"
 HISTORY_PATH = CACHE_DIR / "discovery_history.csv"
 
@@ -325,6 +334,39 @@ def build_universe(trading_client: TradingClient):
     except Exception: random_picks = clean_equities[:80]
     return list(set(custom + random_picks))
 
+def send_telegram_alert(payload: dict):
+    env_vars = {}
+    if os.path.exists(".env"):
+        with open('.env', 'r') as f:
+            for line in f:
+                if '=' in line and not line.strip().startswith('#'):
+                    key, val = line.strip().split('=', 1)
+                    env_vars[key.strip()] = val.strip().strip('"').strip("'")
+                    
+    bot_token = env_vars.get('TELEGRAM_BOT_TOKEN')
+    chat_id = env_vars.get('TELEGRAM_CHAT_ID')
+    
+    if not bot_token or not chat_id:
+        print("Skipping Telegram alert: Credentials not found.")
+        return
+        
+    import requests
+    message = (
+        f"🤖 *V7 Swing Discovery Complete!*\n\n"
+        f"📈 *Long Target:* {payload.get('long_pick')}\n"
+        f"📉 *Short Target:* {payload.get('short_pick')}\n"
+        f"🎯 *Conviction Score:* {payload.get('long_score', 0):.2f}\n"
+        f"🔍 *Universe:* Scanned {payload.get('raw_universe_count')} stocks.\n"
+        f"📊 *Optimized:* Filtered to {payload.get('optimized_universe_count')} stable swing candidates.\n"
+        f"\n✅ Automatically pushed to GitHub for execution."
+    )
+    
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"})
+    except Exception as e:
+        print(f"Failed to send Telegram alert: {e}")
+
 def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = None):
     end_date = datetime.now()
     start_date = end_date - timedelta(days=730)
@@ -534,7 +576,8 @@ def main():
     print(f"✅ SUCCESSFULLY WROTE DISCOVERY CACHE TO: {CACHE_PATH}")
     print(f"✅ SUCCESSFULLY WROTE HISTORY TO: {HISTORY_PATH}")
     print(f"✅ SUCCESSFULLY WROTE SLIPPAGE REPORT TO: {slippage_file}")
-    print("\nDownload all of these files from the '/kaggle/working/data/' folder in the right-side panel!")
+    
+    send_telegram_alert(payload)
 
 if __name__ == "__main__":
     main()

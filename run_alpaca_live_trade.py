@@ -30,17 +30,31 @@ if os.path.exists('.env'):
                 key, val = line.strip().split('=', 1)
                 env_vars[key.strip()] = val.strip().strip('"').strip("'")
 
-# We are testing with Paper Keys for Intraday right now to verify logic without losing money.
-API_KEY = env_vars.get('APCA_INTRA_PAPER_API_KEY_ID') or os.environ.get('APCA_INTRA_PAPER_API_KEY_ID')
-API_SECRET = env_vars.get('APCA_INTRA_PAPER_API_SECRET_KEY') or os.environ.get('APCA_INTRA_PAPER_API_SECRET_KEY')
+# We now load BOTH Paper and Live keys for simultaneous execution.
+PAPER_API_KEY = env_vars.get('APCA_INTRA_PAPER_API_KEY_ID') or os.environ.get('APCA_INTRA_PAPER_API_KEY_ID')
+PAPER_API_SECRET = env_vars.get('APCA_INTRA_PAPER_API_SECRET_KEY') or os.environ.get('APCA_INTRA_PAPER_API_SECRET_KEY')
+
+LIVE_API_KEY = env_vars.get('APCA_LIVE_API_KEY_ID') or os.environ.get('APCA_LIVE_API_KEY_ID')
+LIVE_API_SECRET = env_vars.get('APCA_LIVE_API_SECRET_KEY') or os.environ.get('APCA_LIVE_API_SECRET_KEY')
+
 CACHE_FILE = 'data/intraday/data/latest_discovery.json'
 
-def get_trading_client():
-    if not API_KEY or not API_SECRET:
-        logging.error("APCA_INTRA_PAPER_API_KEY_ID and APCA_INTRA_PAPER_API_SECRET_KEY must be set in .env")
-        return None
-    # Switched to paper=True per your request to test without losing money
-    return TradingClient(API_KEY, API_SECRET, paper=True)
+def get_trading_clients():
+    clients = {}
+    if PAPER_API_KEY and PAPER_API_SECRET:
+        clients['PAPER'] = TradingClient(PAPER_API_KEY, PAPER_API_SECRET, paper=True)
+    else:
+        logging.warning("APCA_INTRA_PAPER_API_KEY_ID and SECRET not found in .env. Skipping Paper execution.")
+        
+    if LIVE_API_KEY and LIVE_API_SECRET:
+        clients['LIVE'] = TradingClient(LIVE_API_KEY, LIVE_API_SECRET, paper=False)
+    else:
+        logging.warning("APCA_LIVE_API_KEY_ID and SECRET not found in .env. Skipping Live execution.")
+        
+    if not clients:
+        logging.error("No valid API keys found in .env. Cannot trade.")
+        
+    return clients
 
 def wait_for_market_open(client: TradingClient):
     """Wait until the market opens, and then wait 5 minutes to avoid volatility noise."""
@@ -70,42 +84,44 @@ def time_to_market_close(client: TradingClient) -> float:
         return 0.0
     return (clock.next_close - clock.timestamp).total_seconds()
 
-def log_trade_to_ledger(symbol, action, reason, pnl_pct=0.0):
+def log_trade_to_ledger(account_name, symbol, action, reason, pnl_pct=0.0):
     ledger_file = "data/intraday/data/intraday_trade_ledger.csv"
     file_exists = os.path.isfile(ledger_file)
     with open(ledger_file, 'a') as f:
         if not file_exists:
-            f.write("Timestamp_UTC,Symbol,Action,Reason,Unrealized_PNL_Pct\n")
+            f.write("Timestamp_UTC,Account,Symbol,Action,Reason,Unrealized_PNL_Pct\n")
         ts = datetime.now(timezone.utc).isoformat()
-        f.write(f"{ts},{symbol},{action},{reason},{pnl_pct:.4f}\n")
+        f.write(f"{ts},{account_name},{symbol},{action},{reason},{pnl_pct:.4f}\n")
 
-def close_all_positions(client: TradingClient, reason="End of Day"):
-    """Closes all open positions before market close."""
-    logging.info(f"{reason} reached. Closing all open positions for intraday strategy.")
-    try:
-        positions = client.get_all_positions()
-        for pos in positions:
-            log_trade_to_ledger(pos.symbol, "SELL", reason, float(pos.unrealized_plpc))
-            
-        # Cancel all open orders first
-        client.cancel_orders()
-        # Liquidate all positions
-        client.close_all_positions(cancel_orders=True)
-        logging.info("Successfully requested closure of all positions.")
-    except Exception as e:
-        logging.error(f"Failed to close positions: {e}")
+def close_all_positions(clients: dict, reason="End of Day"):
+    """Closes all open positions before market close across all active accounts."""
+    logging.info(f"{reason} reached. Closing all open positions across {list(clients.keys())}...")
+    for account_name, client in clients.items():
+        try:
+            positions = client.get_all_positions()
+            for pos in positions:
+                log_trade_to_ledger(account_name, pos.symbol, "SELL", reason, float(pos.unrealized_plpc))
+                
+            client.cancel_orders()
+            client.close_all_positions(cancel_orders=True)
+            logging.info(f"[{account_name}] Successfully liquidated all positions.")
+        except Exception as e:
+            logging.error(f"[{account_name}] Failed to close positions: {e}")
 
 def execute_intraday_trade():
-    client = get_trading_client()
-    if not client:
+    clients = get_trading_clients()
+    if not clients:
         time.sleep(60)
         return
 
+    # We use the first available client to check the clock
+    base_client = list(clients.values())[0]
+
     # 1. Wait for market to be open
-    wait_for_market_open(client)
+    wait_for_market_open(base_client)
 
     # 2. Check time until close. If less than 15 mins, wait for next day.
-    secs_to_close = time_to_market_close(client)
+    secs_to_close = time_to_market_close(base_client)
     if secs_to_close < 900:
         logging.info("Less than 15 minutes to market close. Not taking new trades today.")
         time.sleep(secs_to_close + 60) # Sleep until market closes
@@ -130,7 +146,7 @@ def execute_intraday_trade():
     # Check if we have already traded today based on Eastern Time!
     # Because UTC could roll over mid-afternoon causing double trades.
     # V10 FIX: Trade precisely once per trading day based on Alpaca's Clock
-    clock = client.get_clock()
+    clock = base_client.get_clock()
     today_str = clock.timestamp.strftime('%Y-%m-%d')
     state_file = "data/intraday/data/last_traded_date.txt"
     last_traded_date = ""
@@ -141,8 +157,12 @@ def execute_intraday_trade():
             
     if last_traded_date == today_str:
         logging.info("Already executed trades for today. Sleeping until tomorrow...")
-        # Wait until market close to reset the state logically
-        time.sleep(1800)
+        # Check if the market is open. If it is, sleep until market close to prevent log spam.
+        secs_to_close = time_to_market_close(base_client)
+        if secs_to_close > 0:
+            time.sleep(secs_to_close + 60)
+        else:
+            time.sleep(3600)
         return
 
     # 4. We are cleared to trade today!
@@ -153,33 +173,21 @@ def execute_intraday_trade():
         with open(state_file, 'w') as f: f.write(today_str)
         return
 
-    # 5. Liquidate any existing positions to ensure we have maximum cash ready!
-    logging.info("Checking for any pre-existing positions to liquidate before today's trade...")
-    try:
-        client.cancel_orders()
-        client.close_all_positions(cancel_orders=True)
-        time.sleep(10) # Wait for settlement
-    except Exception as e:
-        logging.error(f"Failed to liquidate pre-existing positions: {e}")
+    # 5. Liquidate pre-existing positions across all active clients
+    logging.info("Liquidating pre-existing positions before today's execution...")
+    for account_name, client in clients.items():
+        try:
+            client.cancel_orders()
+            client.close_all_positions(cancel_orders=True)
+            logging.info(f"[{account_name}] Liquidated successfully.")
+        except Exception as e:
+            logging.error(f"[{account_name}] Failed to liquidate: {e}")
+            
+    time.sleep(15) # Wait for settlement
 
-    # Check account balance
-    try:
-        account = client.get_account()
-        cash = float(account.cash)
-        logging.info(f"Account Cash Available after liquidation: ${cash:.2f}")
-    except Exception as e:
-        logging.error(f"Failed to fetch account info: {e}")
-        time.sleep(60)
-        return
-
-    # Safety buffer: keep 5% or minimum $0.05 cash to prevent margin calls
-    trade_amount = cash * 0.95
-    
-    # SLIPPAGE LIMIT CHECK (1% ADV)
-    # Ensure we never trade more than 1% of the asset's average daily volume (in dollars)
+    # Read Slippage Limits once for the asset
     slippage_cap = float('inf')
     try:
-        # Find the latest slippage file in data/intraday/data/
         slippage_files = glob.glob('data/intraday/data/slippage_1pct_adv_*.csv')
         if slippage_files:
             latest_slippage = max(slippage_files, key=os.path.getmtime)
@@ -196,96 +204,118 @@ def execute_intraday_trade():
     except Exception as e:
         logging.error(f"Error reading slippage limit: {e}")
 
-    # Enforce Slippage Cap
-    if trade_amount > slippage_cap:
-        logging.warning(f"Trade amount (${trade_amount:.2f}) EXCEEDS Slippage Cap (${slippage_cap:.2f}). Limiting trade to exactly 1% ADV!")
-        trade_amount = slippage_cap
-
-    if trade_amount < 1.0:
-        logging.warning(f"Not enough cash to trade securely. Have ${cash:.2f}, need at least $1.05. Using all available cash for testing: ${cash:.2f}")
-        trade_amount = cash - 0.05 # Leave 5 cents just in case
-        if trade_amount <= 0:
-            logging.error("Account basically empty. Can't trade.")
-            with open(state_file, 'w') as f: f.write(str(last_mtime))
-            return
-
-    logging.info(f"Targeting LONG on {long_pick} with ${trade_amount:.2f} (Slippage Safe)")
-
-    # Alpaca allows fractional shares. We can use `notional` to specify the dollar amount.
-    # To maximize profit and minimize risk, we will add a bracket order.
-    # We don't know the exact current price here, but we can set Take Profit / Stop loss via percentage offsets 
-    # Or rely on Alpaca's simple market order + an end-of-day exit. 
-    # Alpaca's bracket orders require limit_price or stop_price, which means we need the current price to set them accurately.
-    # For a purely automated intraday system, buying at market and selling at end of day is the simplest robust start.
-    
-    try:
-        # Submit the buy order
-        req = MarketOrderRequest(
-            symbol=long_pick,
-            notional=round(trade_amount, 2), # Fractional amount in dollars
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.DAY
-        )
-        order = client.submit_order(order_data=req)
-        logging.info(f"Submitted BUY order for {long_pick}: ID {order.id}")
-        log_trade_to_ledger(long_pick, "BUY", "V9 Discovery Entry", 0.0)
-        
-        # Mark as traded FOR TODAY so we don't buy again if the script restarts!
-        with open(state_file, 'w') as f: 
-            f.write(today_str)
+    # 6. Execute Simultaneous Buys
+    for account_name, client in clients.items():
+        try:
+            account = client.get_account()
+            cash = float(account.cash)
+            logging.info(f"[{account_name}] Cash Available: ${cash:.2f}")
             
-    except Exception as e:
-        logging.error(f"Failed to place order: {e}")
-        time.sleep(60)
-        return
+            # Keep 5% safety buffer
+            trade_amount = cash * 0.95
+            
+            # Enforce Slippage Cap
+            if trade_amount > slippage_cap:
+                logging.warning(f"[{account_name}] Trade amount (${trade_amount:.2f}) EXCEEDS Slippage Cap (${slippage_cap:.2f}). Limiting trade!")
+                trade_amount = slippage_cap
 
-    # V9 INTRADAY OPTIMIZED BRACKET TARGETS:
-    # V9 Hyper-Optimization proved that expanding limits to 14/9 maximizes EV!
+            if trade_amount < 1.0:
+                logging.warning(f"[{account_name}] Not enough cash. Using all available cash minus 5c.")
+                trade_amount = cash - 0.05
+                if trade_amount <= 0:
+                    logging.error(f"[{account_name}] Account empty. Skipping trade.")
+                    continue
+            
+            logging.info(f"[{account_name}] Targeting LONG on {long_pick} with ${trade_amount:.2f} (Slippage Safe)")
+            
+            req = MarketOrderRequest(
+                symbol=long_pick,
+                notional=round(trade_amount, 2),
+                side=OrderSide.BUY,
+                time_in_force=TimeInForce.DAY
+            )
+            order = client.submit_order(order_data=req)
+            logging.info(f"[{account_name}] Submitted BUY order for {long_pick}: ID {order.id}")
+            log_trade_to_ledger(account_name, long_pick, "BUY", "V10 Discovery Entry", 0.0)
+            
+        except Exception as e:
+            logging.error(f"[{account_name}] Failed to place order: {e}")
+            
+    # Mark as traded FOR TODAY so we don't double-buy
+    with open(state_file, 'w') as f: 
+        f.write(today_str)
+
+    # V10 INTRADAY OPTIMIZED DYNAMIC BRACKETS:
+    # Based on exhaustive 1-minute tick simulations, static targets get chopped out.
+    # We now implement a robust mathematical trailing logic:
+    # 1. Base Target: +14%, Base Stop: -9%
+    # 2. Dynamic Trailing: If the stock rallies significantly (+5%), we raise the stop-loss to breakeven!
     target_profit_pct = 0.14
-    stop_loss_pct = -0.09
+    initial_stop_loss_pct = -0.09
+    current_stop_loss_pct = initial_stop_loss_pct
     
     # Wait for the order to fill
-    time.sleep(10)
+    time.sleep(15)
+    
+    # Track highest PNL per account for the trailing stop loss logic
+    highest_pnl_tracker = {name: 0.0 for name in clients.keys()}
+    current_stop_loss_tracker = {name: initial_stop_loss_pct for name in clients.keys()}
     
     # Monitor loop
     while True:
-        secs_to_close = time_to_market_close(client)
+        secs_to_close = time_to_market_close(base_client)
         if secs_to_close < 300: # 5 minutes
-            logging.info("Approaching market close. Liquidating intraday position.")
-            close_all_positions(client)
+            logging.info("Approaching market close. Liquidating all active intraday positions.")
+            close_all_positions(clients, reason="TIME_STOP_5MIN")
             time.sleep(secs_to_close + 60)
             break
             
-        try:
-            positions = client.get_all_positions()
-            if not positions:
-                logging.info("No open positions found. Exiting monitor loop.")
-                break
+        active_accounts = 0
+        for account_name, client in list(clients.items()):
+            try:
+                positions = client.get_all_positions()
+                position_found = False
                 
-            position_found = False
-            for pos in positions:
-                if pos.symbol == long_pick:
-                    position_found = True
-                    unrealized_pct = float(pos.unrealized_plpc)
-                    logging.info(f"Monitoring {long_pick} | Unrealized P/L: {unrealized_pct*100:.2f}% | {secs_to_close / 60:.1f} mins to close")
-                    
-                    if unrealized_pct >= target_profit_pct:
-                        logging.info(f"TAKE PROFIT hit! (+{unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
-                        client.close_position(long_pick)
-                        log_trade_to_ledger(long_pick, "SELL", "Take Profit Hit", unrealized_pct)
-                        break
-                    elif unrealized_pct <= stop_loss_pct:
-                        logging.info(f"STOP LOSS hit! ({unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
-                        client.close_position(long_pick)
-                        log_trade_to_ledger(long_pick, "SELL", "Stop Loss Hit", unrealized_pct)
-                        break
-            
-            if not position_found:
-                logging.info(f"Position for {long_pick} no longer exists. Exiting monitor loop.")
-                break
+                for pos in positions:
+                    if pos.symbol == long_pick:
+                        position_found = True
+                        active_accounts += 1
+                        unrealized_pct = float(pos.unrealized_plpc)
+                        
+                        if unrealized_pct > highest_pnl_tracker[account_name]:
+                            highest_pnl_tracker[account_name] = unrealized_pct
+                            
+                        # DYNAMIC TRAILING LOGIC
+                        if highest_pnl_tracker[account_name] >= 0.05 and current_stop_loss_tracker[account_name] < 0.00:
+                            logging.info(f"[{account_name}] Rally detected! Moving Stop Loss to Breakeven (0.00%).")
+                            current_stop_loss_tracker[account_name] = 0.00
+                            
+                        if highest_pnl_tracker[account_name] >= 0.10 and current_stop_loss_tracker[account_name] < 0.05:
+                            logging.info(f"[{account_name}] Massive Rally detected! Trailing Stop Loss to +5.00%.")
+                            current_stop_loss_tracker[account_name] = 0.05
 
-        except Exception as e:
-            logging.error(f"Error checking positions: {e}")
+                        logging.info(f"[{account_name}] Monitoring {long_pick} | P/L: {unrealized_pct*100:.2f}% | Max: {highest_pnl_tracker[account_name]*100:.2f}% | SL: {current_stop_loss_tracker[account_name]*100:.2f}%")
+                        
+                        if unrealized_pct >= target_profit_pct:
+                            logging.info(f"[{account_name}] TAKE PROFIT hit! (+{unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
+                            client.close_position(long_pick)
+                            log_trade_to_ledger(account_name, long_pick, "SELL", "TAKE_PROFIT", unrealized_pct)
+                        elif unrealized_pct <= current_stop_loss_tracker[account_name]:
+                            logging.info(f"[{account_name}] STOP LOSS hit! ({unrealized_pct*100:.2f}%). Liquidating {long_pick}.")
+                            client.close_position(long_pick)
+                            log_trade_to_ledger(account_name, long_pick, "SELL", "DYNAMIC_STOP_LOSS", unrealized_pct)
+                            
+                if not position_found:
+                    # If it's not found, the position is closed. We remove the client from active monitoring.
+                    pass
+                    
+            except Exception as e:
+                logging.error(f"[{account_name}] Error checking positions: {e}")
+                active_accounts += 1 # Keep alive in case of temporary API hiccup
+                
+        if active_accounts == 0:
+            logging.info("All positions across all accounts are closed. Exiting monitor loop.")
+            break
             
         time.sleep(60) # Poll every 60 seconds
 

@@ -74,8 +74,16 @@ warnings.filterwarnings("ignore")
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using compute device: {DEVICE}")
 
-# Kaggle Output Directory is exactly the current working directory `/kaggle/working/`
-CACHE_DIR = Path("/kaggle/working/data")
+# Output locally to the main data/intraday/data directory
+cwd_path = Path(os.getcwd())
+if cwd_path.name == 'intraday':
+    # Running from within kaggle_jobs/intraday
+    CACHE_DIR = Path("../../data/intraday/data").resolve()
+else:
+    # Running from root
+    CACHE_DIR = Path("data/intraday/data").resolve()
+
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_PATH = CACHE_DIR / "latest_discovery.json"
 HISTORY_PATH = CACHE_DIR / "discovery_history.csv"
 
@@ -324,13 +332,51 @@ def build_universe(trading_client: TradingClient):
     except Exception: random_picks = clean_equities[:80]
     return list(set(custom + random_picks))
 
+def send_telegram_alert(payload: dict):
+    env_vars = {}
+    if os.path.exists(".env"):
+        with open('.env', 'r') as f:
+            for line in f:
+                if '=' in line and not line.strip().startswith('#'):
+                    key, val = line.strip().split('=', 1)
+                    env_vars[key.strip()] = val.strip().strip('"').strip("'")
+                    
+    bot_token = env_vars.get('TELEGRAM_BOT_TOKEN')
+    chat_id = env_vars.get('TELEGRAM_CHAT_ID')
+    
+    if not bot_token or not chat_id:
+        print("Skipping Telegram alert: Credentials not found.")
+        return
+        
+    import requests
+    message = (
+        f"🤖 *V10 Intraday Discovery Complete!*\n\n"
+        f"📈 *Long Target:* {payload.get('long_pick')}\n"
+        f"🎯 *Conviction Score:* {payload.get('long_score', 0):.2f}\n"
+        f"🔍 *Universe:* Scanned {payload.get('raw_universe_count')} stocks.\n"
+        f"📊 *Optimized:* Filtered to {payload.get('optimized_universe_count')} hyper-volatile runners.\n"
+        f"\n✅ Automatically pushed to GitHub for execution."
+    )
+    
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"})
+    except Exception as e:
+        print(f"Failed to send Telegram alert: {e}")
+
 def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = None):
     end_date = datetime.now()
     start_date = end_date - timedelta(days=730)
     if tracker: tracker.set_phase(f"Downloading 2-year data for {len(raw_universe)} stocks")
     
     # V9: Download Open, High, Low, Close, Volume
-    data_raw = yf.download(raw_universe, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), auto_adjust=True, progress=False)
+    import logging
+    try:
+        data_raw = yf.download(raw_universe, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), auto_adjust=True, progress=False, ignore_tz=True)
+    except TypeError:
+        # Fallback if ignore_tz is not supported in this yfinance version
+        data_raw = yf.download(raw_universe, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), auto_adjust=True, progress=False)
+
     df_raw = data_raw["Close"].dropna(axis=1)
     df_volume = data_raw["Volume"].dropna(axis=1)
     
@@ -560,7 +606,8 @@ def main():
     print(f"✅ SUCCESSFULLY WROTE DISCOVERY CACHE TO: {CACHE_PATH}")
     print(f"✅ SUCCESSFULLY WROTE HISTORY TO: {HISTORY_PATH}")
     print(f"✅ SUCCESSFULLY WROTE SLIPPAGE REPORT TO: {slippage_file}")
-    print("\nDownload all of these files from the '/kaggle/working/data/' folder in the right-side panel!")
+    
+    send_telegram_alert(payload)
 
 if __name__ == "__main__":
     main()
