@@ -1,661 +1,666 @@
 {
-  "generated_at_utc": "2026-03-23T10:18:58.280986+00:00",
+  "generated_at_utc": "2026-03-23T10:19:58.107414+00:00",
   "discovery_schedule": "weekly",
-  "raw_universe_count": 93,
-  "optimized_universe_count": 74,
+  "raw_universe_count": 92,
+  "optimized_universe_count": 77,
   "raw_universe": [
     "AAPL",
-    "AIRJ",
-    "ALMU",
-    "AMAX",
-    "AMLX",
-    "AMTB",
+    "ALLE",
     "AMZN",
-    "APTV",
+    "ASMIY",
+    "ASTH",
+    "AVBC",
     "AVGO",
-    "AXON",
-    "BJUL",
-    "BNDC",
-    "BUYZ",
-    "BZH",
-    "CAPR",
-    "CERT",
+    "AVNT",
+    "AVT",
+    "BGT",
+    "BOC",
+    "CAFX",
+    "CCNE",
+    "CGMM",
+    "CGUS",
+    "CL",
     "COIN",
     "COST",
-    "CRCL",
-    "CRTO",
-    "CUT",
-    "DAPR",
-    "DNMX",
-    "EJPRY",
-    "ELF",
-    "ELV",
-    "ENTG",
-    "EPP",
-    "EVAC",
-    "EVCM",
-    "FAAR",
-    "FAN",
-    "FENI",
-    "FIXD",
-    "FLSP",
-    "FNDB",
-    "FVD",
-    "GEL",
+    "DNKEY",
+    "DTIL",
+    "ECOR",
+    "EDU",
+    "EE",
+    "EMLP",
+    "ENVA",
+    "EVT",
+    "EWY",
+    "FBRT",
+    "FBTC",
+    "FIBK",
+    "FSRCY",
+    "FSUN",
     "GOOGL",
-    "GPIQ",
-    "GRDN",
-    "HCAT",
-    "HIMU",
-    "HTD",
-    "IDX",
-    "IEMG",
-    "IP",
-    "IPX",
-    "IVA",
+    "GOVT",
+    "GQGU",
+    "GWRE",
+    "HE",
+    "HTHT",
+    "HYHG",
+    "IBMO",
+    "IDEV",
+    "IDV",
+    "IGSB",
+    "IJK",
+    "JETS",
     "JPM",
     "KLRS",
-    "KMTS",
-    "KRO",
-    "KROS",
-    "LSPD",
-    "LXP",
-    "MBX",
-    "MDIV",
+    "KNF",
+    "MEAR",
     "META",
-    "MNRO",
-    "MSA",
+    "MKTX",
     "MSFT",
+    "MSIF",
     "MSTR",
-    "MTG",
-    "MYY",
-    "NBHC",
-    "NBIS",
-    "NEXT",
-    "NUMG",
+    "MTZ",
+    "NAT",
+    "NJUN",
     "NVDA",
-    "OGN",
-    "OLLI",
-    "PAYS",
-    "PG",
-    "PKE",
+    "OBE",
+    "OSEA",
+    "OZK",
+    "PAWZ",
+    "PGHY",
     "PLTR",
-    "PRM",
-    "QYLG",
-    "RAAQ",
+    "PMT",
+    "PR",
+    "PSCC",
+    "PYLD",
     "RANI",
-    "RHLD",
-    "SIMO",
-    "SIZE",
+    "RBLD",
+    "RIGS",
+    "RRR",
+    "SBUX",
     "SMCI",
-    "SPPP",
-    "SSRM",
-    "STRV",
-    "TCOM",
+    "SMTI",
+    "SNOW",
+    "SPSK",
+    "SR",
+    "TATT",
     "TSLA",
-    "VMD",
-    "VNM",
-    "VTES",
-    "VTWO"
+    "TYD",
+    "TYL",
+    "UEVM",
+    "USDU",
+    "USFR",
+    "UWM",
+    "VICR",
+    "VTOL",
+    "WTTR",
+    "WULF",
+    "XJH",
+    "XLE"
   ],
   "optimized_universe": [
     "AAPL",
-    "AMAX",
-    "AMLX",
-    "AMTB",
+    "ALLE",
     "AMZN",
-    "APTV",
+    "ASMIY",
+    "ASTH",
     "AVGO",
-    "AXON",
-    "BJUL",
-    "BNDC",
-    "BUYZ",
-    "BZH",
-    "CERT",
+    "AVNT",
+    "AVT",
+    "BGT",
+    "BOC",
+    "CCNE",
+    "CGUS",
+    "CL",
     "COST",
-    "CRTO",
-    "CUT",
-    "DAPR",
-    "EJPRY",
-    "ELF",
-    "ELV",
-    "ENTG",
-    "EPP",
-    "EVCM",
-    "FAAR",
-    "FAN",
-    "FENI",
-    "FIXD",
-    "FLSP",
-    "FNDB",
-    "FVD",
-    "GEL",
+    "DNKEY",
+    "EDU",
+    "EE",
+    "EMLP",
+    "ENVA",
+    "EVT",
+    "EWY",
+    "FBRT",
+    "FBTC",
+    "FIBK",
+    "FSRCY",
+    "FSUN",
     "GOOGL",
-    "GPIQ",
-    "HCAT",
-    "HTD",
-    "IDX",
-    "IEMG",
-    "IP",
-    "IPX",
+    "GOVT",
+    "GWRE",
+    "HE",
+    "HTHT",
+    "HYHG",
+    "IBMO",
+    "IDEV",
+    "IDV",
+    "IGSB",
+    "IJK",
+    "JETS",
     "JPM",
-    "KRO",
-    "KROS",
-    "LSPD",
-    "LXP",
-    "MDIV",
+    "KNF",
+    "MEAR",
     "META",
-    "MNRO",
-    "MSA",
+    "MKTX",
     "MSFT",
-    "MTG",
-    "MYY",
-    "NBHC",
-    "NEXT",
-    "NUMG",
+    "MTZ",
+    "NAT",
     "NVDA",
-    "OGN",
-    "OLLI",
-    "PAYS",
-    "PG",
-    "PKE",
+    "OBE",
+    "OSEA",
+    "OZK",
+    "PAWZ",
+    "PGHY",
     "PLTR",
-    "PRM",
-    "QYLG",
-    "SIMO",
-    "SIZE",
-    "SPPP",
-    "SSRM",
-    "STRV",
-    "TCOM",
+    "PMT",
+    "PR",
+    "PSCC",
+    "PYLD",
+    "RBLD",
+    "RIGS",
+    "RRR",
+    "SBUX",
+    "SMTI",
+    "SNOW",
+    "SPSK",
+    "SR",
+    "TATT",
     "TSLA",
-    "VMD",
-    "VNM",
-    "VTES",
-    "VTWO"
+    "TYD",
+    "TYL",
+    "UEVM",
+    "USDU",
+    "USFR",
+    "UWM",
+    "VTOL",
+    "WTTR",
+    "XJH",
+    "XLE"
   ],
-  "long_pick": "KROS",
-  "long_score": -0.05002917362930729,
-  "short_pick": "CUT",
-  "short_score": -0.15610067546367645,
+  "long_pick": "FSRCY",
+  "long_score": -0.47700649154635,
+  "short_pick": "CL",
+  "short_score": -0.8057926893234253,
   "top_rankings": [
     {
-      "symbol": "KROS",
-      "score": -0.05002917362930729
+      "symbol": "FSRCY",
+      "score": -0.47700649154635
     },
     {
-      "symbol": "HCAT",
-      "score": -0.07624297889092581
+      "symbol": "IBMO",
+      "score": -0.5588848639183146
     },
     {
-      "symbol": "OGN",
-      "score": -0.08805068431738623
+      "symbol": "MEAR",
+      "score": -0.5793885091376916
     },
     {
-      "symbol": "SSRM",
-      "score": -0.08853410184383392
+      "symbol": "USFR",
+      "score": -0.5818849603276997
     },
     {
-      "symbol": "DAPR",
-      "score": -0.08978268863026856
+      "symbol": "TATT",
+      "score": -0.5856243371963501
     },
     {
-      "symbol": "CRTO",
-      "score": -0.09051048755645752
+      "symbol": "EMLP",
+      "score": -0.5878865718841553
     },
     {
-      "symbol": "KRO",
-      "score": -0.09172561764717102
-    },
-    {
-      "symbol": "VTES",
-      "score": -0.0955296486485483
+      "symbol": "DNKEY",
+      "score": -0.5902200937271118
     },
     {
       "symbol": "PLTR",
-      "score": -0.09928030520677567
+      "score": -0.6038166284561157
     },
     {
-      "symbol": "PRM",
-      "score": -0.10029284656047821
+      "symbol": "EWY",
+      "score": -0.6092500686645508
+    },
+    {
+      "symbol": "MTZ",
+      "score": -0.6201239824295044
+    },
+    {
+      "symbol": "HYHG",
+      "score": -0.62128746509552
+    },
+    {
+      "symbol": "IDV",
+      "score": -0.62212073802948
     },
     {
       "symbol": "JPM",
-      "score": -0.10174082219600677
+      "score": -0.6282858848571777
     },
     {
-      "symbol": "AMLX",
-      "score": -0.10238048434257507
+      "symbol": "PGHY",
+      "score": -0.6285977363586426
     },
     {
       "symbol": "AVGO",
-      "score": -0.10439823567867279
+      "score": -0.63199782371521
     },
     {
-      "symbol": "IPX",
-      "score": -0.10491563379764557
+      "symbol": "PYLD",
+      "score": -0.634212076663971
     },
     {
-      "symbol": "FNDB",
-      "score": -0.10742458701133728
+      "symbol": "SPSK",
+      "score": -0.6344670057296753
     },
     {
-      "symbol": "FENI",
-      "score": -0.10747826099395752
+      "symbol": "ENVA",
+      "score": -0.6389888525009155
     },
     {
-      "symbol": "ELV",
-      "score": -0.10838304460048676
-    },
-    {
-      "symbol": "FAAR",
-      "score": -0.11073201894760132
+      "symbol": "RIGS",
+      "score": -0.6625162959098816
     },
     {
       "symbol": "GOOGL",
-      "score": -0.11149410903453827
+      "score": -0.6637181639671326
     },
     {
-      "symbol": "STRV",
-      "score": -0.11196573078632355
+      "symbol": "SR",
+      "score": -0.6658103466033936
     },
     {
-      "symbol": "PKE",
-      "score": -0.11272923648357391
+      "symbol": "IDEV",
+      "score": -0.6687116622924805
     },
     {
-      "symbol": "FLSP",
-      "score": -0.11313579976558685
+      "symbol": "RBLD",
+      "score": -0.6819027662277222
     },
     {
-      "symbol": "BJUL",
-      "score": -0.11344069242477417
+      "symbol": "UEVM",
+      "score": -0.6822708249092102
     },
     {
-      "symbol": "BNDC",
-      "score": -0.11513747274875641
+      "symbol": "IGSB",
+      "score": -0.689702966471162
     },
     {
-      "symbol": "GPIQ",
-      "score": -0.11635614931583405
+      "symbol": "ASTH",
+      "score": -0.6935994625091553
     },
     {
-      "symbol": "HTD",
-      "score": -0.11722396314144135
+      "symbol": "MKTX",
+      "score": -0.698088526725769
     },
     {
-      "symbol": "SPPP",
-      "score": -0.11735470592975616
-    },
-    {
-      "symbol": "EPP",
-      "score": -0.11830803751945496
-    },
-    {
-      "symbol": "FIXD",
-      "score": -0.1194639652967453
-    },
-    {
-      "symbol": "FAN",
-      "score": -0.12205670773983002
-    },
-    {
-      "symbol": "ELF",
-      "score": -0.12474291026592255
-    },
-    {
-      "symbol": "NVDA",
-      "score": -0.12476028501987457
-    },
-    {
-      "symbol": "MNRO",
-      "score": -0.12482930719852448
-    },
-    {
-      "symbol": "QYLG",
-      "score": -0.12524838745594025
-    },
-    {
-      "symbol": "SIZE",
-      "score": -0.12525327503681183
-    },
-    {
-      "symbol": "GEL",
-      "score": -0.12653402984142303
-    },
-    {
-      "symbol": "IEMG",
-      "score": -0.1275137960910797
-    },
-    {
-      "symbol": "FVD",
-      "score": -0.12899944186210632
-    },
-    {
-      "symbol": "VNM",
-      "score": -0.13010652363300323
-    },
-    {
-      "symbol": "MDIV",
-      "score": -0.13091008365154266
+      "symbol": "CGUS",
+      "score": -0.7005314230918884
     },
     {
       "symbol": "TSLA",
-      "score": -0.13118503987789154
+      "score": -0.704131543636322
     },
     {
-      "symbol": "AMAX",
-      "score": -0.13222168385982513
+      "symbol": "FSUN",
+      "score": -0.7061166167259216
     },
     {
-      "symbol": "BZH",
-      "score": -0.13261778652668
+      "symbol": "EDU",
+      "score": -0.7099376916885376
     },
     {
-      "symbol": "AXON",
-      "score": -0.13508890569210052
+      "symbol": "GOVT",
+      "score": -0.7195156812667847
     },
     {
-      "symbol": "NUMG",
-      "score": -0.13589982688426971
+      "symbol": "NVDA",
+      "score": -0.7197576761245728
     },
     {
-      "symbol": "SIMO",
-      "score": -0.1395656019449234
+      "symbol": "FBTC",
+      "score": -0.7227479815483093
     },
     {
-      "symbol": "PAYS",
-      "score": -0.14101029932498932
+      "symbol": "HTHT",
+      "score": -0.7246063947677612
     },
     {
-      "symbol": "ENTG",
-      "score": -0.14141304790973663
+      "symbol": "ALLE",
+      "score": -0.7300609946250916
     },
     {
-      "symbol": "META",
-      "score": -0.1418001800775528
+      "symbol": "TYL",
+      "score": -0.7341352701187134
     },
     {
-      "symbol": "AMTB",
-      "score": -0.14274252951145172
+      "symbol": "EVT",
+      "score": -0.7355400323867798
+    },
+    {
+      "symbol": "JETS",
+      "score": -0.7361757755279541
+    },
+    {
+      "symbol": "SNOW",
+      "score": -0.7401255369186401
+    },
+    {
+      "symbol": "EE",
+      "score": -0.7404187917709351
+    },
+    {
+      "symbol": "HE",
+      "score": -0.7435451745986938
+    },
+    {
+      "symbol": "OSEA",
+      "score": -0.7462677955627441
+    },
+    {
+      "symbol": "SMTI",
+      "score": -0.7467376589775085
+    },
+    {
+      "symbol": "GWRE",
+      "score": -0.7505180835723877
+    },
+    {
+      "symbol": "AMZN",
+      "score": -0.750534176826477
+    },
+    {
+      "symbol": "XLE",
+      "score": -0.7522432208061218
+    },
+    {
+      "symbol": "WTTR",
+      "score": -0.7524762153625488
+    },
+    {
+      "symbol": "MSFT",
+      "score": -0.7557351589202881
+    },
+    {
+      "symbol": "VTOL",
+      "score": -0.7569489479064941
     }
   ],
   "top_short_rankings": [
     {
-      "symbol": "CUT",
-      "score": -0.15610067546367645
+      "symbol": "CL",
+      "score": -0.8057926893234253
     },
     {
-      "symbol": "MYY",
-      "score": -0.15596307814121246
+      "symbol": "UWM",
+      "score": -0.8022282123565674
     },
     {
-      "symbol": "MSA",
-      "score": -0.1558292955160141
-    },
-    {
-      "symbol": "IP",
-      "score": -0.15432526171207428
-    },
-    {
-      "symbol": "APTV",
-      "score": -0.15290360152721405
-    },
-    {
-      "symbol": "NBHC",
-      "score": -0.1522115021944046
-    },
-    {
-      "symbol": "EJPRY",
-      "score": -0.15181668102741241
+      "symbol": "SBUX",
+      "score": -0.8018181920051575
     },
     {
       "symbol": "COST",
-      "score": -0.15181298553943634
+      "score": -0.7993699908256531
     },
     {
-      "symbol": "MTG",
-      "score": -0.1505555957555771
+      "symbol": "PR",
+      "score": -0.7983194589614868
     },
     {
-      "symbol": "PG",
-      "score": -0.15049125254154205
+      "symbol": "OZK",
+      "score": -0.7981241941452026
     },
     {
-      "symbol": "OLLI",
-      "score": -0.1494113951921463
+      "symbol": "IJK",
+      "score": -0.7967775464057922
     },
     {
-      "symbol": "TCOM",
-      "score": -0.149295374751091
+      "symbol": "FBRT",
+      "score": -0.7967307567596436
     },
     {
-      "symbol": "LXP",
-      "score": -0.1491570621728897
+      "symbol": "KNF",
+      "score": -0.7919635772705078
     },
     {
-      "symbol": "EVCM",
-      "score": -0.14911361038684845
+      "symbol": "BGT",
+      "score": -0.790585994720459
     },
     {
-      "symbol": "MSFT",
-      "score": -0.14847005903720856
+      "symbol": "OBE",
+      "score": -0.7900245189666748
     },
     {
-      "symbol": "NEXT",
-      "score": -0.14832676947116852
+      "symbol": "XJH",
+      "score": -0.7899481058120728
     },
     {
-      "symbol": "AAPL",
-      "score": -0.14813731610774994
+      "symbol": "PSCC",
+      "score": -0.7884577512741089
     },
     {
-      "symbol": "AMZN",
-      "score": -0.145983025431633
+      "symbol": "ASMIY",
+      "score": -0.7857930064201355
     },
     {
-      "symbol": "CERT",
-      "score": -0.14567412436008453
+      "symbol": "PMT",
+      "score": -0.7825786471366882
     },
     {
-      "symbol": "BUYZ",
-      "score": -0.14554257690906525
+      "symbol": "PAWZ",
+      "score": -0.7825326919555664
     },
     {
-      "symbol": "LSPD",
-      "score": -0.14437811076641083
+      "symbol": "RRR",
+      "score": -0.7804500460624695
     },
     {
-      "symbol": "VMD",
-      "score": -0.1431257128715515
+      "symbol": "TYD",
+      "score": -0.7765373587608337
     },
     {
-      "symbol": "IDX",
-      "score": -0.14297907054424286
+      "symbol": "BOC",
+      "score": -0.7756490707397461
     },
     {
-      "symbol": "VTWO",
-      "score": -0.14292772114276886
+      "symbol": "FIBK",
+      "score": -0.7736783027648926
     },
     {
-      "symbol": "AMTB",
-      "score": -0.14274252951145172
+      "symbol": "NAT",
+      "score": -0.7666510343551636
+    },
+    {
+      "symbol": "CCNE",
+      "score": -0.7650792598724365
+    },
+    {
+      "symbol": "USDU",
+      "score": -0.7639950513839722
+    },
+    {
+      "symbol": "AVT",
+      "score": -0.7632793188095093
     },
     {
       "symbol": "META",
-      "score": -0.1418001800775528
+      "score": -0.7627949118614197
     },
     {
-      "symbol": "ENTG",
-      "score": -0.14141304790973663
+      "symbol": "AAPL",
+      "score": -0.7624281048774719
     },
     {
-      "symbol": "PAYS",
-      "score": -0.14101029932498932
+      "symbol": "AVNT",
+      "score": -0.7570103406906128
     },
     {
-      "symbol": "SIMO",
-      "score": -0.1395656019449234
+      "symbol": "VTOL",
+      "score": -0.7569489479064941
     },
     {
-      "symbol": "NUMG",
-      "score": -0.13589982688426971
+      "symbol": "MSFT",
+      "score": -0.7557351589202881
     },
     {
-      "symbol": "AXON",
-      "score": -0.13508890569210052
+      "symbol": "WTTR",
+      "score": -0.7524762153625488
     },
     {
-      "symbol": "BZH",
-      "score": -0.13261778652668
+      "symbol": "XLE",
+      "score": -0.7522432208061218
     },
     {
-      "symbol": "AMAX",
-      "score": -0.13222168385982513
+      "symbol": "AMZN",
+      "score": -0.750534176826477
     },
     {
-      "symbol": "TSLA",
-      "score": -0.13118503987789154
+      "symbol": "GWRE",
+      "score": -0.7505180835723877
     },
     {
-      "symbol": "MDIV",
-      "score": -0.13091008365154266
+      "symbol": "SMTI",
+      "score": -0.7467376589775085
     },
     {
-      "symbol": "VNM",
-      "score": -0.13010652363300323
+      "symbol": "OSEA",
+      "score": -0.7462677955627441
     },
     {
-      "symbol": "FVD",
-      "score": -0.12899944186210632
+      "symbol": "HE",
+      "score": -0.7435451745986938
     },
     {
-      "symbol": "IEMG",
-      "score": -0.1275137960910797
+      "symbol": "EE",
+      "score": -0.7404187917709351
     },
     {
-      "symbol": "GEL",
-      "score": -0.12653402984142303
+      "symbol": "SNOW",
+      "score": -0.7401255369186401
     },
     {
-      "symbol": "SIZE",
-      "score": -0.12525327503681183
+      "symbol": "JETS",
+      "score": -0.7361757755279541
     },
     {
-      "symbol": "QYLG",
-      "score": -0.12524838745594025
+      "symbol": "EVT",
+      "score": -0.7355400323867798
     },
     {
-      "symbol": "MNRO",
-      "score": -0.12482930719852448
+      "symbol": "TYL",
+      "score": -0.7341352701187134
+    },
+    {
+      "symbol": "ALLE",
+      "score": -0.7300609946250916
+    },
+    {
+      "symbol": "HTHT",
+      "score": -0.7246063947677612
+    },
+    {
+      "symbol": "FBTC",
+      "score": -0.7227479815483093
     },
     {
       "symbol": "NVDA",
-      "score": -0.12476028501987457
+      "score": -0.7197576761245728
     },
     {
-      "symbol": "ELF",
-      "score": -0.12474291026592255
+      "symbol": "GOVT",
+      "score": -0.7195156812667847
     },
     {
-      "symbol": "FAN",
-      "score": -0.12205670773983002
+      "symbol": "EDU",
+      "score": -0.7099376916885376
     },
     {
-      "symbol": "FIXD",
-      "score": -0.1194639652967453
+      "symbol": "FSUN",
+      "score": -0.7061166167259216
     },
     {
-      "symbol": "EPP",
-      "score": -0.11830803751945496
+      "symbol": "TSLA",
+      "score": -0.704131543636322
     },
     {
-      "symbol": "SPPP",
-      "score": -0.11735470592975616
-    },
-    {
-      "symbol": "HTD",
-      "score": -0.11722396314144135
-    },
-    {
-      "symbol": "GPIQ",
-      "score": -0.11635614931583405
+      "symbol": "CGUS",
+      "score": -0.7005314230918884
     }
   ],
   "latest_prices": {
     "AAPL": 247.99000549316406,
-    "AMAX": 7.679999828338623,
-    "AMLX": 13.8100004196167,
-    "AMTB": 20.709999084472656,
+    "ALLE": 142.49000549316406,
     "AMZN": 205.3699951171875,
-    "APTV": 68.0999984741211,
+    "ASMIY": 734.5650024414062,
+    "ASTH": 24.229999542236328,
     "AVGO": 310.510009765625,
-    "AXON": 496.2699890136719,
-    "BJUL": 49.47869873046875,
-    "BNDC": 22.094999313354492,
-    "BUYZ": 31.98900032043457,
-    "BZH": 18.649999618530273,
-    "CERT": 6.150000095367432,
+    "AVNT": 31.90999984741211,
+    "AVT": 58.45000076293945,
+    "BGT": 10.760000228881836,
+    "BOC": 11.800000190734863,
+    "CCNE": 27.450000762939453,
+    "CGUS": 38.47999954223633,
+    "CL": 85.12000274658203,
     "COST": 972.3300170898438,
-    "CRTO": 17.0,
-    "CUT": 27.190000534057617,
-    "DAPR": 39.54999923706055,
-    "EJPRY": 11.180000305175781,
-    "ELF": 72.5,
-    "ELV": 291.4800109863281,
-    "ENTG": 114.66000366210938,
-    "EPP": 52.040000915527344,
-    "EVCM": 10.350000381469727,
-    "FAAR": 34.029998779296875,
-    "FAN": 23.239999771118164,
-    "FENI": 35.90999984741211,
-    "FIXD": 43.55970001220703,
-    "FLSP": 26.8700008392334,
-    "FNDB": 26.81999969482422,
-    "FVD": 46.459999084472656,
-    "GEL": 17.6200008392334,
+    "DNKEY": 24.010000228881836,
+    "EDU": 54.97999954223633,
+    "EE": 32.9900016784668,
+    "EMLP": 43.15999984741211,
+    "ENVA": 134.99000549316406,
+    "EVT": 24.219999313354492,
+    "EWY": 125.77999877929688,
+    "FBRT": 8.829999923706055,
+    "FBTC": 61.119998931884766,
+    "FIBK": 32.47999954223633,
+    "FSRCY": 184.14999389648438,
+    "FSUN": 35.5099983215332,
     "GOOGL": 301.0,
-    "GPIQ": 49.7400016784668,
-    "HCAT": 1.2300000190734863,
-    "HTD": 24.209999084472656,
-    "IDX": 13.140000343322754,
-    "IEMG": 68.37000274658203,
-    "IP": 33.7599983215332,
-    "IPX": 23.290000915527344,
+    "GOVT": 22.78499984741211,
+    "GWRE": 155.61000061035156,
+    "HE": 14.0600004196167,
+    "HTHT": 50.130001068115234,
+    "HYHG": 63.869998931884766,
+    "IBMO": 25.6299991607666,
+    "IDEV": 80.56999969482422,
+    "IDV": 40.790000915527344,
+    "IGSB": 52.33000183105469,
+    "IJK": 98.72000122070312,
+    "JETS": 24.09000015258789,
     "JPM": 286.55999755859375,
-    "KRO": 5.400000095367432,
-    "KROS": 10.960000038146973,
-    "LSPD": 8.729999542236328,
-    "LXP": 46.560001373291016,
-    "MDIV": 16.145599365234375,
+    "KNF": 80.9000015258789,
+    "MEAR": 50.310001373291016,
     "META": 593.6599731445312,
-    "MNRO": 15.010000228881836,
-    "MSA": 170.13999938964844,
+    "MKTX": 174.00999450683594,
     "MSFT": 381.8500061035156,
-    "MTG": 25.65999984741211,
-    "MYY": 17.674800872802734,
-    "NBHC": 37.47999954223633,
-    "NEXT": 7.329999923706055,
-    "NUMG": 41.5099983215332,
+    "MTZ": 300.5799865722656,
+    "NAT": 5.25,
     "NVDA": 172.92999267578125,
-    "OGN": 6.03000020980835,
-    "OLLI": 98.95999908447266,
-    "PAYS": 3.2300000190734863,
-    "PG": 144.27999877929688,
-    "PKE": 26.3799991607666,
+    "OBE": 8.729999542236328,
+    "OSEA": 28.399999618530273,
+    "OZK": 43.84000015258789,
+    "PAWZ": 50.25,
+    "PGHY": 19.489999771118164,
     "PLTR": 150.67999267578125,
-    "PRM": 20.690000534057617,
-    "QYLG": 26.08970069885254,
-    "SIMO": 123.76000213623047,
-    "SIZE": 157.25,
-    "SPPP": 14.680000305175781,
-    "SSRM": 22.989999771118164,
-    "STRV": 41.89739990234375,
-    "TCOM": 51.060001373291016,
+    "PMT": 11.220000267028809,
+    "PR": 20.06999969482422,
+    "PSCC": 30.895000457763672,
+    "PYLD": 26.1200008392334,
+    "RBLD": 79.67880249023438,
+    "RIGS": 22.729400634765625,
+    "RRR": 57.52000045776367,
+    "SBUX": 92.55000305175781,
+    "SMTI": 18.3799991607666,
+    "SNOW": 168.02000427246094,
+    "SPSK": 17.850000381469727,
+    "SR": 88.44000244140625,
+    "TATT": 43.0099983215332,
     "TSLA": 367.9599914550781,
-    "VMD": 8.710000038146973,
-    "VNM": 16.43000030517578,
-    "VTES": 101.23999786376953,
-    "VTWO": 98.08999633789062
+    "TYD": 24.360000610351562,
+    "TYL": 350.20001220703125,
+    "UEVM": 55.71929931640625,
+    "USDU": 26.229999542236328,
+    "USFR": 50.45000076293945,
+    "UWM": 44.83000183105469,
+    "VTOL": 44.18000030517578,
+    "WTTR": 14.40999984741211,
+    "XJH": 44.279998779296875,
+    "XLE": 59.310001373291016
   }
 }
