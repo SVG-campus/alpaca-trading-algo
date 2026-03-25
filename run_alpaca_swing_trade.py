@@ -33,6 +33,58 @@ def get_env_vars():
                     env_vars[key.strip()] = val.strip().strip('"').strip("'")
     return env_vars
 
+def send_telegram_message(message: str):
+    """Sends a message to the user's Telegram Bot."""
+    env_vars = get_env_vars()
+    bot_token = env_vars.get('TELEGRAM_BOT_TOKEN')
+    chat_id = env_vars.get('TELEGRAM_CHAT_ID')
+    
+    if not bot_token or not chat_id:
+        logging.warning("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not found in .env. Skipping Telegram alert.")
+        return
+        
+    try:
+        import requests
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
+        requests.post(url, json=payload)
+    except Exception as e:
+        logging.error(f"Failed to send Telegram message: {e}")
+
+def calculate_ttp_allocations(discovery: dict):
+    """Calculates and sends TTP Prop Account allocations ($6k, $30k, $250k) to Telegram."""
+    top_longs = [p["symbol"] for p in discovery.get("top_rankings", [])][:50]
+    latest_prices = discovery.get("latest_prices", {})
+    
+    if not top_longs:
+        return
+        
+    message = "🚨 *TTP MONTHLY SWING ALLOCATIONS (LONG ONLY)* 🚨\n\n"
+    
+    accounts = [6000, 30000, 250000]
+    for account_size in accounts:
+        # TTP Strategy: 100% Long on the top 50
+        alloc_per_stock = account_size / len(top_longs)
+        
+        message += f"💰 **${account_size:,} TTP Account**\n"
+        message += f"Target Allocation: **${alloc_per_stock:,.2f}** per stock\n"
+        
+        # We'll list any stocks that get capped by the 1% ADV slippage rule
+        capped_stocks = []
+        for symbol in top_longs:
+            cap = get_slippage_cap(symbol)
+            if alloc_per_stock > cap:
+                capped_stocks.append(f"{symbol} (Cap: ${cap:,.0f})")
+                
+        if capped_stocks:
+            message += f"⚠️ *Slippage Warning:* The following stocks must be capped below target to avoid 1% ADV slippage: {', '.join(capped_stocks)}\n"
+        else:
+            message += "✅ All 50 stocks safely pass the 1% ADV slippage check.\n"
+            
+        message += "\n"
+        
+    send_telegram_message(message)
+
 def is_first_trading_day_of_month(client: TradingClient):
     """Checks if today is the first trading day of the current month."""
     today = datetime.now(timezone.utc).date()
@@ -138,7 +190,7 @@ def rebalance_account(client: TradingClient, discovery: dict, account_name: str)
             logging.warning(f"[{account_name}] Failed to long {symbol}: {e}")
 
     # Execute Shorts (Fractional NOT allowed on Alpaca for shorts, must calculate integer qty)
-    # To do this safely without fractional shorting, we need latest prices.
+    # Furthermore, Alpaca only allows shorting "Easy-To-Borrow" (ETB) assets.
     latest_prices = discovery.get("latest_prices", {})
     for symbol in top_shorts:
         price = latest_prices.get(symbol)
@@ -148,6 +200,16 @@ def rebalance_account(client: TradingClient, discovery: dict, account_name: str)
         qty = int(alloc // price)
         if qty < 1: continue
         
+        # CRITICAL SAFETY CHECK: Verify asset is shortable
+        try:
+            asset = client.get_asset(symbol)
+            if not asset.shortable:
+                logging.info(f"[{account_name}] Skipping SHORT on {symbol} (Asset is not shortable/ETB).")
+                continue
+        except Exception as e:
+            logging.warning(f"[{account_name}] Failed to verify if {symbol} is shortable: {e}")
+            continue
+            
         try:
             req = MarketOrderRequest(
                 symbol=symbol,
@@ -169,20 +231,14 @@ def execute_monthly_swing():
     paper_key = env_vars.get('APCA_PAPER_API_KEY_ID') or os.environ.get('APCA_PAPER_API_KEY_ID')
     paper_sec = env_vars.get('APCA_PAPER_API_SECRET_KEY') or os.environ.get('APCA_PAPER_API_SECRET_KEY')
     
-    max_key = env_vars.get('APCA_PAPER_MAX_API_KEY_ID') or os.environ.get('APCA_PAPER_MAX_API_KEY_ID')
-    max_sec = env_vars.get('APCA_PAPER_MAX_API_SECRET_KEY') or os.environ.get('APCA_PAPER_MAX_API_SECRET_KEY')
-    
     paper_client = TradingClient(paper_key, paper_sec, paper=True) if paper_key and paper_sec and paper_key != 'YOUR_PAPER_KEY' else None
-    max_client = TradingClient(max_key, max_sec, paper=True) if max_key and max_sec and max_key != 'YOUR_PAPER_MAX_KEY' else None
 
-    if not paper_client and not max_client:
-        logging.error("No valid Paper or Paper Max API keys found in .env.")
+    if not paper_client:
+        logging.error("No valid Paper API keys found in .env.")
         time.sleep(3600)
         return
 
-    checker_client = paper_client if paper_client else max_client
-    if not checker_client:
-        return
+    checker_client = paper_client
 
     # Monthly execution check
     now = datetime.now()
@@ -240,8 +296,12 @@ def execute_monthly_swing():
     # Rebalance
     if paper_client:
         rebalance_account(paper_client, discovery, "PAPER")
-    if max_client:
-        rebalance_account(max_client, discovery, "PAPER MAX")
+
+    # Calculate and send TTP Telegram Alert
+    try:
+        calculate_ttp_allocations(discovery)
+    except Exception as e:
+        logging.error(f"TTP Allocation calculation failed: {e}")
 
     # Mark month as traded
     with open(state_file, 'w') as f:
