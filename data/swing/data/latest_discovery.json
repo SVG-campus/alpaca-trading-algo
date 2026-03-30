@@ -1,668 +1,660 @@
 {
-  "generated_at_utc": "2026-03-27T10:15:30.352074+00:00",
+  "generated_at_utc": "2026-03-30T10:13:06.779593+00:00",
   "discovery_schedule": "weekly",
   "raw_universe_count": 94,
-  "optimized_universe_count": 77,
+  "optimized_universe_count": 73,
   "raw_universe": [
     "AAPL",
-    "ABNB",
-    "AIPI",
-    "ALB",
-    "ALH",
-    "AMSF",
+    "AFRM",
     "AMZN",
+    "AOS",
+    "ATMU",
+    "AUGO",
     "AVGO",
-    "AYI",
-    "CANE",
-    "CCC",
-    "CLS",
-    "COCO",
-    "CODI",
+    "AVIG",
+    "AXTI",
+    "BEN",
+    "BEZ",
+    "BITQ",
+    "BOBS",
+    "BST",
+    "CDXS",
+    "CEF",
+    "CIM",
+    "CLSM",
     "COIN",
     "COST",
     "CPA",
-    "EHAB",
-    "ENTA",
-    "ESGE",
-    "ETHE",
-    "EZM",
-    "FIVA",
-    "FLKR",
-    "FLTW",
-    "FPH",
-    "GE",
+    "CRM",
+    "CSCO",
+    "CTAS",
+    "CUB",
+    "DDFN",
+    "DDIV",
+    "DFIV",
+    "DRIV",
+    "EDEN",
+    "ESI",
+    "EXI",
+    "FGMC",
+    "FVC",
+    "GFR",
     "GHY",
-    "GHYG",
     "GOOGL",
-    "GSST",
-    "HCA",
-    "HFRO",
-    "HNST",
-    "HTOO",
-    "IMFL",
-    "IMTB",
-    "INTL",
-    "IWMI",
-    "IZRL",
-    "JILL",
+    "GTMEY",
+    "IFLN",
+    "INTC",
+    "JGLO",
+    "JPLD",
     "JPM",
-    "JSMD",
-    "KHC",
-    "LOUP",
-    "LPLA",
-    "LQDI",
+    "KBR",
+    "KTB",
+    "LBTYA",
     "LQDT",
-    "MAXN",
-    "MCS",
     "META",
-    "MKOR",
-    "MMTM",
-    "MMYT",
-    "MSEX",
-    "MSFL",
+    "MRP",
+    "MRSK",
     "MSFT",
     "MSTR",
-    "NBIG",
-    "NMFC",
-    "NNDM",
-    "NTRA",
+    "NFRA",
+    "NSIT",
     "NVDA",
-    "OASC",
-    "PDT",
-    "PINE",
+    "NYF",
+    "ONTF",
+    "ORC",
+    "OSPN",
+    "PATH",
+    "PCF",
+    "PCG",
+    "PCM",
+    "PFFD",
+    "PFGC",
+    "PLTG",
     "PLTR",
-    "PRIM",
-    "PTF",
-    "QLV",
-    "QVAL",
-    "RDIV",
-    "RUNN",
-    "RWJ",
-    "RWK",
-    "RYAN",
-    "SEOAY",
-    "SFGYY",
-    "SIBN",
-    "SINT",
-    "SLNH",
+    "RDYY",
+    "RLGT",
+    "RVSB",
+    "SCCR",
     "SMCI",
-    "SPCT",
-    "STTK",
-    "TBIL",
-    "TEO",
-    "THRY",
-    "TLSI",
+    "SMG",
+    "SPXS",
+    "SSREY",
+    "SWAN",
+    "TAP",
+    "TENX",
+    "TFLR",
+    "TLTW",
+    "TOST",
+    "TSAT",
     "TSLA",
-    "ULTY",
-    "URNM",
-    "VITL",
-    "WW",
-    "WYNN"
+    "TSLR",
+    "TSN",
+    "USSG",
+    "VGSH",
+    "VIXY",
+    "VPU",
+    "WANT",
+    "WBI",
+    "WLTH",
+    "WNTR",
+    "XOMA"
   ],
   "optimized_universe": [
     "AAPL",
-    "ABNB",
-    "ALB",
-    "AMSF",
+    "AFRM",
     "AMZN",
+    "AOS",
+    "ATMU",
     "AVGO",
-    "AYI",
-    "CANE",
-    "CCC",
-    "CLS",
-    "COCO",
-    "CODI",
+    "AVIG",
+    "BEN",
+    "BITQ",
+    "BST",
+    "CEF",
+    "CIM",
+    "CLSM",
     "COST",
     "CPA",
-    "EHAB",
-    "ESGE",
-    "ETHE",
-    "EZM",
-    "FIVA",
-    "FLKR",
-    "FLTW",
-    "FPH",
-    "GE",
+    "CRM",
+    "CSCO",
+    "CTAS",
+    "DDIV",
+    "DFIV",
+    "DRIV",
+    "EDEN",
+    "ESI",
+    "EXI",
+    "FVC",
+    "GFR",
     "GHY",
-    "GHYG",
     "GOOGL",
-    "GSST",
-    "HCA",
-    "HFRO",
-    "HNST",
-    "IMFL",
-    "IMTB",
-    "INTL",
-    "IZRL",
-    "JILL",
+    "GTMEY",
+    "IFLN",
+    "INTC",
+    "JGLO",
+    "JPLD",
     "JPM",
-    "JSMD",
-    "KHC",
-    "LOUP",
-    "LPLA",
-    "LQDI",
+    "KBR",
+    "KTB",
+    "LBTYA",
     "LQDT",
-    "MCS",
     "META",
-    "MKOR",
-    "MMTM",
-    "MMYT",
-    "MSEX",
-    "MSFL",
+    "MRSK",
     "MSFT",
-    "NMFC",
-    "NNDM",
-    "NTRA",
+    "NFRA",
+    "NSIT",
     "NVDA",
-    "PDT",
-    "PINE",
+    "NYF",
+    "ONTF",
+    "ORC",
+    "OSPN",
+    "PATH",
+    "PCF",
+    "PCG",
+    "PCM",
+    "PFFD",
+    "PFGC",
     "PLTR",
-    "PRIM",
-    "PTF",
-    "QLV",
-    "QVAL",
-    "RDIV",
-    "RUNN",
-    "RWJ",
-    "RWK",
-    "RYAN",
-    "SEOAY",
-    "SIBN",
-    "TBIL",
-    "TEO",
-    "THRY",
-    "TLSI",
+    "RLGT",
+    "RVSB",
+    "SMG",
+    "SPXS",
+    "SSREY",
+    "SWAN",
+    "TAP",
+    "TENX",
+    "TFLR",
+    "TLTW",
+    "TOST",
     "TSLA",
-    "ULTY",
-    "URNM",
-    "VITL",
-    "WYNN"
+    "TSN",
+    "USSG",
+    "VGSH",
+    "VPU",
+    "WANT",
+    "XOMA"
   ],
-  "long_pick": "ULTY",
-  "long_score": 1.2904631525134995,
-  "short_pick": "GSST",
-  "short_score": 0.4615243077278137,
+  "long_pick": "GTMEY",
+  "long_score": -0.5675612473370747,
+  "short_pick": "LBTYA",
+  "short_score": -1.249381184577942,
   "top_rankings": [
     {
-      "symbol": "ULTY",
-      "score": 1.2904631525134995
+      "symbol": "GTMEY",
+      "score": -0.5675612473370747
     },
     {
-      "symbol": "VITL",
-      "score": 1.2295496599716629
+      "symbol": "JPLD",
+      "score": -0.628733712568357
     },
     {
-      "symbol": "SEOAY",
-      "score": 1.1576898391428285
+      "symbol": "CEF",
+      "score": -0.7484404799734482
     },
     {
-      "symbol": "RUNN",
-      "score": 1.1001097031884834
+      "symbol": "VGSH",
+      "score": -0.7886205911636353
     },
     {
-      "symbol": "MMYT",
-      "score": 1.0721828683917964
+      "symbol": "TFLR",
+      "score": -0.8389952054226625
     },
     {
-      "symbol": "COST",
-      "score": 1.0151450634002686
+      "symbol": "INTC",
+      "score": -0.8537042140960693
     },
     {
-      "symbol": "AMSF",
-      "score": 1.013692855834961
+      "symbol": "AVGO",
+      "score": -0.8688888549804688
     },
     {
-      "symbol": "ETHE",
-      "score": 1.0126447677612305
+      "symbol": "EXI",
+      "score": -0.8702919483184814
     },
     {
-      "symbol": "RWK",
-      "score": 0.9997600317001343
+      "symbol": "TENX",
+      "score": -0.8711428642272949
     },
     {
-      "symbol": "EZM",
-      "score": 0.9980415105819702
+      "symbol": "PLTR",
+      "score": -0.8823513984680176
     },
     {
-      "symbol": "WYNN",
-      "score": 0.9922486543655396
+      "symbol": "CSCO",
+      "score": -0.9022895097732544
     },
     {
-      "symbol": "MSFL",
-      "score": 0.9905681610107422
+      "symbol": "PCM",
+      "score": -0.9041280746459961
     },
     {
-      "symbol": "PTF",
-      "score": 0.9892734289169312
+      "symbol": "DFIV",
+      "score": -0.9069129228591919
     },
     {
-      "symbol": "RYAN",
-      "score": 0.9838902950286865
+      "symbol": "NSIT",
+      "score": -0.9541568841962667
     },
     {
-      "symbol": "ABNB",
-      "score": 0.9838694334030151
+      "symbol": "GOOGL",
+      "score": -0.96897292137146
     },
     {
-      "symbol": "META",
-      "score": 0.9795277118682861
+      "symbol": "SPXS",
+      "score": -0.9722135066986084
     },
     {
-      "symbol": "RWJ",
-      "score": 0.976498007774353
+      "symbol": "IFLN",
+      "score": -0.9750957489013672
     },
     {
-      "symbol": "SIBN",
-      "score": 0.9754663705825806
+      "symbol": "AVIG",
+      "score": -0.9855066537857056
     },
     {
-      "symbol": "URNM",
-      "score": 0.9742301106452942
+      "symbol": "KBR",
+      "score": -0.9856511354446411
     },
     {
-      "symbol": "HFRO",
-      "score": 0.971686601638794
+      "symbol": "ATMU",
+      "score": -0.9904698133468628
     },
     {
-      "symbol": "AMZN",
-      "score": 0.9689264297485352
+      "symbol": "PATH",
+      "score": -1.0077698230743408
     },
     {
-      "symbol": "GHY",
-      "score": 0.9602305889129639
+      "symbol": "JPM",
+      "score": -1.0188263654708862
     },
     {
-      "symbol": "AYI",
-      "score": 0.959227442741394
+      "symbol": "NFRA",
+      "score": -1.0327341556549072
     },
     {
-      "symbol": "TEO",
-      "score": 0.9537938833236694
+      "symbol": "RVSB",
+      "score": -1.039281964302063
     },
     {
-      "symbol": "AAPL",
-      "score": 0.9409568309783936
+      "symbol": "WANT",
+      "score": -1.0412280559539795
     },
     {
-      "symbol": "JSMD",
-      "score": 0.9392407536506653
+      "symbol": "USSG",
+      "score": -1.0540711879730225
     },
     {
-      "symbol": "QVAL",
-      "score": 0.9347487688064575
+      "symbol": "SSREY",
+      "score": -1.0575733184814453
     },
     {
-      "symbol": "MSFT",
-      "score": 0.9246957302093506
+      "symbol": "ONTF",
+      "score": -1.0589455366134644
     },
     {
-      "symbol": "LOUP",
-      "score": 0.9111371040344238
+      "symbol": "ORC",
+      "score": -1.062466025352478
     },
     {
-      "symbol": "HNST",
-      "score": 0.901267409324646
+      "symbol": "JGLO",
+      "score": -1.0743025541305542
     },
     {
-      "symbol": "HCA",
-      "score": 0.8970769047737122
-    },
-    {
-      "symbol": "ALB",
-      "score": 0.8919287323951721
-    },
-    {
-      "symbol": "MSEX",
-      "score": 0.8909143209457397
-    },
-    {
-      "symbol": "PINE",
-      "score": 0.8874123096466064
-    },
-    {
-      "symbol": "MCS",
-      "score": 0.8866890668869019
-    },
-    {
-      "symbol": "TSLA",
-      "score": 0.8847060799598694
-    },
-    {
-      "symbol": "FLTW",
-      "score": 0.8831790089607239
-    },
-    {
-      "symbol": "EHAB",
-      "score": 0.8744113445281982
+      "symbol": "SWAN",
+      "score": -1.0769319534301758
     },
     {
       "symbol": "LQDT",
-      "score": 0.8724844455718994
+      "score": -1.0790138244628906
     },
     {
-      "symbol": "NMFC",
-      "score": 0.8722499012947083
+      "symbol": "MRSK",
+      "score": -1.079048752784729
     },
     {
-      "symbol": "KHC",
-      "score": 0.860360860824585
+      "symbol": "VPU",
+      "score": -1.0823495388031006
     },
     {
-      "symbol": "NTRA",
-      "score": 0.8534138202667236
+      "symbol": "AOS",
+      "score": -1.087489128112793
     },
     {
-      "symbol": "NVDA",
-      "score": 0.8483690619468689
+      "symbol": "BST",
+      "score": -1.1010652780532837
     },
     {
-      "symbol": "LPLA",
-      "score": 0.8368341326713562
+      "symbol": "TSLA",
+      "score": -1.1030172109603882
     },
     {
       "symbol": "CPA",
-      "score": 0.8344762325286865
+      "score": -1.1087690591812134
     },
     {
-      "symbol": "NNDM",
-      "score": 0.8292292952537537
+      "symbol": "DDIV",
+      "score": -1.1093952655792236
     },
     {
-      "symbol": "LQDI",
-      "score": 0.8288034200668335
+      "symbol": "CLSM",
+      "score": -1.1127240657806396
     },
     {
-      "symbol": "RDIV",
-      "score": 0.8181694746017456
+      "symbol": "AFRM",
+      "score": -1.115647315979004
     },
     {
-      "symbol": "IZRL",
-      "score": 0.8050557374954224
+      "symbol": "BITQ",
+      "score": -1.1162290573120117
     },
     {
-      "symbol": "CCC",
-      "score": 0.7982233166694641
+      "symbol": "NYF",
+      "score": -1.1186959743499756
+    },
+    {
+      "symbol": "NVDA",
+      "score": -1.1302303075790405
+    },
+    {
+      "symbol": "DRIV",
+      "score": -1.13486647605896
+    },
+    {
+      "symbol": "PFGC",
+      "score": -1.148532748222351
+    },
+    {
+      "symbol": "GHY",
+      "score": -1.152765154838562
+    },
+    {
+      "symbol": "AAPL",
+      "score": -1.1550589799880981
+    },
+    {
+      "symbol": "TOST",
+      "score": -1.1622191667556763
+    },
+    {
+      "symbol": "AMZN",
+      "score": -1.170507788658142
     }
   ],
   "top_short_rankings": [
     {
-      "symbol": "GSST",
-      "score": 0.4615243077278137
+      "symbol": "LBTYA",
+      "score": -1.249381184577942
     },
     {
-      "symbol": "MKOR",
-      "score": 0.5012527108192444
+      "symbol": "TAP",
+      "score": -1.2437669038772583
     },
     {
-      "symbol": "FLKR",
-      "score": 0.5415922403335571
+      "symbol": "SMG",
+      "score": -1.2362228631973267
     },
     {
-      "symbol": "CLS",
-      "score": 0.5748893022537231
+      "symbol": "KTB",
+      "score": -1.2243181467056274
     },
     {
-      "symbol": "THRY",
-      "score": 0.582984983921051
+      "symbol": "EDEN",
+      "score": -1.2241201400756836
     },
     {
-      "symbol": "IMTB",
-      "score": 0.5868737697601318
+      "symbol": "PFFD",
+      "score": -1.2186601161956787
     },
     {
-      "symbol": "FIVA",
-      "score": 0.5902705192565918
+      "symbol": "OSPN",
+      "score": -1.2182550430297852
     },
     {
-      "symbol": "GHYG",
-      "score": 0.608928918838501
+      "symbol": "PCF",
+      "score": -1.21755850315094
     },
     {
-      "symbol": "CODI",
-      "score": 0.6308894157409668
+      "symbol": "CIM",
+      "score": -1.2173625230789185
     },
     {
-      "symbol": "TBIL",
-      "score": 0.6321799755096436
+      "symbol": "BEN",
+      "score": -1.2173579931259155
     },
     {
-      "symbol": "PRIM",
-      "score": 0.6497207283973694
+      "symbol": "TSN",
+      "score": -1.2162710428237915
     },
     {
-      "symbol": "PLTR",
-      "score": 0.6639655232429504
+      "symbol": "FVC",
+      "score": -1.2121882438659668
     },
     {
-      "symbol": "JILL",
-      "score": 0.665483295917511
+      "symbol": "CTAS",
+      "score": -1.2100330591201782
     },
     {
-      "symbol": "GE",
-      "score": 0.6877769231796265
+      "symbol": "XOMA",
+      "score": -1.2067179679870605
     },
     {
-      "symbol": "IMFL",
-      "score": 0.6920750141143799
+      "symbol": "COST",
+      "score": -1.2059884071350098
     },
     {
-      "symbol": "COCO",
-      "score": 0.6938678622245789
+      "symbol": "META",
+      "score": -1.2004953622817993
     },
     {
-      "symbol": "QLV",
-      "score": 0.6981438398361206
+      "symbol": "RLGT",
+      "score": -1.1974725723266602
     },
     {
-      "symbol": "GOOGL",
-      "score": 0.6990823149681091
+      "symbol": "ESI",
+      "score": -1.1971057653427124
     },
     {
-      "symbol": "INTL",
-      "score": 0.6993105411529541
+      "symbol": "TLTW",
+      "score": -1.1930536031723022
     },
     {
-      "symbol": "AVGO",
-      "score": 0.716245174407959
+      "symbol": "CRM",
+      "score": -1.1873886585235596
     },
     {
-      "symbol": "ESGE",
-      "score": 0.7252432107925415
+      "symbol": "PCG",
+      "score": -1.180674433708191
     },
     {
-      "symbol": "TLSI",
-      "score": 0.7279183268547058
-    },
-    {
-      "symbol": "FPH",
-      "score": 0.7433266639709473
-    },
-    {
-      "symbol": "JPM",
-      "score": 0.7555134296417236
-    },
-    {
-      "symbol": "MMTM",
-      "score": 0.7595316767692566
-    },
-    {
-      "symbol": "PDT",
-      "score": 0.761488139629364
-    },
-    {
-      "symbol": "CANE",
-      "score": 0.7695816159248352
-    },
-    {
-      "symbol": "CCC",
-      "score": 0.7982233166694641
-    },
-    {
-      "symbol": "IZRL",
-      "score": 0.8050557374954224
-    },
-    {
-      "symbol": "RDIV",
-      "score": 0.8181694746017456
-    },
-    {
-      "symbol": "LQDI",
-      "score": 0.8288034200668335
-    },
-    {
-      "symbol": "NNDM",
-      "score": 0.8292292952537537
-    },
-    {
-      "symbol": "CPA",
-      "score": 0.8344762325286865
-    },
-    {
-      "symbol": "LPLA",
-      "score": 0.8368341326713562
-    },
-    {
-      "symbol": "NVDA",
-      "score": 0.8483690619468689
-    },
-    {
-      "symbol": "NTRA",
-      "score": 0.8534138202667236
-    },
-    {
-      "symbol": "KHC",
-      "score": 0.860360860824585
-    },
-    {
-      "symbol": "NMFC",
-      "score": 0.8722499012947083
-    },
-    {
-      "symbol": "LQDT",
-      "score": 0.8724844455718994
-    },
-    {
-      "symbol": "EHAB",
-      "score": 0.8744113445281982
-    },
-    {
-      "symbol": "FLTW",
-      "score": 0.8831790089607239
-    },
-    {
-      "symbol": "TSLA",
-      "score": 0.8847060799598694
-    },
-    {
-      "symbol": "MCS",
-      "score": 0.8866890668869019
-    },
-    {
-      "symbol": "PINE",
-      "score": 0.8874123096466064
-    },
-    {
-      "symbol": "MSEX",
-      "score": 0.8909143209457397
-    },
-    {
-      "symbol": "ALB",
-      "score": 0.8919287323951721
-    },
-    {
-      "symbol": "HCA",
-      "score": 0.8970769047737122
-    },
-    {
-      "symbol": "HNST",
-      "score": 0.901267409324646
-    },
-    {
-      "symbol": "LOUP",
-      "score": 0.9111371040344238
+      "symbol": "GFR",
+      "score": -1.1741408109664917
     },
     {
       "symbol": "MSFT",
-      "score": 0.9246957302093506
+      "score": -1.172023057937622
+    },
+    {
+      "symbol": "AMZN",
+      "score": -1.170507788658142
+    },
+    {
+      "symbol": "TOST",
+      "score": -1.1622191667556763
+    },
+    {
+      "symbol": "AAPL",
+      "score": -1.1550589799880981
+    },
+    {
+      "symbol": "GHY",
+      "score": -1.152765154838562
+    },
+    {
+      "symbol": "PFGC",
+      "score": -1.148532748222351
+    },
+    {
+      "symbol": "DRIV",
+      "score": -1.13486647605896
+    },
+    {
+      "symbol": "NVDA",
+      "score": -1.1302303075790405
+    },
+    {
+      "symbol": "NYF",
+      "score": -1.1186959743499756
+    },
+    {
+      "symbol": "BITQ",
+      "score": -1.1162290573120117
+    },
+    {
+      "symbol": "AFRM",
+      "score": -1.115647315979004
+    },
+    {
+      "symbol": "CLSM",
+      "score": -1.1127240657806396
+    },
+    {
+      "symbol": "DDIV",
+      "score": -1.1093952655792236
+    },
+    {
+      "symbol": "CPA",
+      "score": -1.1087690591812134
+    },
+    {
+      "symbol": "TSLA",
+      "score": -1.1030172109603882
+    },
+    {
+      "symbol": "BST",
+      "score": -1.1010652780532837
+    },
+    {
+      "symbol": "AOS",
+      "score": -1.087489128112793
+    },
+    {
+      "symbol": "VPU",
+      "score": -1.0823495388031006
+    },
+    {
+      "symbol": "MRSK",
+      "score": -1.079048752784729
+    },
+    {
+      "symbol": "LQDT",
+      "score": -1.0790138244628906
+    },
+    {
+      "symbol": "SWAN",
+      "score": -1.0769319534301758
+    },
+    {
+      "symbol": "JGLO",
+      "score": -1.0743025541305542
+    },
+    {
+      "symbol": "ORC",
+      "score": -1.062466025352478
+    },
+    {
+      "symbol": "ONTF",
+      "score": -1.0589455366134644
+    },
+    {
+      "symbol": "SSREY",
+      "score": -1.0575733184814453
+    },
+    {
+      "symbol": "USSG",
+      "score": -1.0540711879730225
+    },
+    {
+      "symbol": "WANT",
+      "score": -1.0412280559539795
+    },
+    {
+      "symbol": "RVSB",
+      "score": -1.039281964302063
     }
   ],
   "latest_prices": {
-    "AAPL": 252.88999938964844,
-    "ABNB": 131.05999755859375,
-    "ALB": 174.5,
-    "AMSF": 32.97999954223633,
-    "AMZN": 207.5399932861328,
-    "AVGO": 309.4200134277344,
-    "AYI": 270.3399963378906,
-    "CANE": 10.630000114440918,
-    "CCC": 6.0,
-    "CLS": 273.3800048828125,
-    "COCO": 51.68000030517578,
-    "CODI": 6.610000133514404,
-    "COST": 979.6500244140625,
-    "CPA": 113.94000244140625,
-    "EHAB": 13.65999984741211,
-    "ESGE": 44.439998626708984,
-    "ETHE": 16.65999984741211,
-    "EZM": 66.7699966430664,
-    "FIVA": 33.95000076293945,
-    "FLKR": 38.880001068115234,
-    "FLTW": 67.31999969482422,
-    "FPH": 4.860000133514404,
-    "GE": 285.239990234375,
-    "GHY": 11.510000228881836,
-    "GHYG": 44.70000076293945,
-    "GOOGL": 280.9200134277344,
-    "GSST": 50.45000076293945,
-    "HCA": 480.32000732421875,
-    "HFRO": 5.619999885559082,
-    "HNST": 2.9100000858306885,
-    "IMFL": 30.860000610351562,
-    "IMTB": 43.459999084472656,
-    "INTL": 27.559999465942383,
-    "IZRL": 27.780000686645508,
-    "JILL": 15.350000381469727,
-    "JPM": 291.6600036621094,
-    "JSMD": 78.31400299072266,
-    "KHC": 21.559999465942383,
-    "LOUP": 69.38999938964844,
-    "LPLA": 303.7200012207031,
-    "LQDI": 25.940000534057617,
-    "LQDT": 29.799999237060547,
-    "MCS": 17.030000686645508,
-    "META": 547.5399780273438,
-    "MKOR": 42.56100082397461,
-    "MMTM": 277.9800109863281,
-    "MMYT": 40.0,
-    "MSEX": 52.029998779296875,
-    "MSFL": 14.920000076293945,
-    "MSFT": 365.9700012207031,
-    "NMFC": 7.650000095367432,
-    "NNDM": 1.7899999618530273,
-    "NTRA": 196.14999389648438,
-    "NVDA": 171.24000549316406,
-    "PDT": 12.850000381469727,
-    "PINE": 18.059999465942383,
-    "PLTR": 147.55999755859375,
-    "PRIM": 140.60000610351562,
-    "PTF": 86.76000213623047,
-    "QLV": 71.22000122070312,
-    "QVAL": 51.93600082397461,
-    "RDIV": 55.65999984741211,
-    "RUNN": 32.00299835205078,
-    "RWJ": 50.400001525878906,
-    "RWK": 127.4800033569336,
-    "RYAN": 33.040000915527344,
-    "SEOAY": 11.510000228881836,
-    "SIBN": 12.84000015258789,
-    "TBIL": 49.970001220703125,
-    "TEO": 11.619999885559082,
-    "THRY": 2.5999999046325684,
-    "TLSI": 3.9200000762939453,
-    "TSLA": 372.1099853515625,
-    "ULTY": 30.3700008392334,
-    "URNM": 59.2400016784668,
-    "VITL": 13.010000228881836,
-    "WYNN": 99.47000122070312
+    "AAPL": 248.8000030517578,
+    "AFRM": 42.529998779296875,
+    "AMZN": 199.33999633789062,
+    "AOS": 64.41999816894531,
+    "ATMU": 58.06999969482422,
+    "AVGO": 300.67999267578125,
+    "AVIG": 41.16999816894531,
+    "BEN": 22.75,
+    "BITQ": 18.690000534057617,
+    "BST": 35.15999984741211,
+    "CEF": 45.290000915527344,
+    "CIM": 12.40999984741211,
+    "CLSM": 22.665000915527344,
+    "COST": 983.8599853515625,
+    "CPA": 110.91000366210938,
+    "CRM": 179.30999755859375,
+    "CSCO": 79.91999816894531,
+    "CTAS": 165.7100067138672,
+    "DDIV": 39.334999084472656,
+    "DFIV": 51.220001220703125,
+    "DRIV": 29.617000579833984,
+    "EDEN": 99.94000244140625,
+    "ESI": 33.36000061035156,
+    "EXI": 176.9600067138672,
+    "FVC": 34.36000061035156,
+    "GFR": 6.579999923706055,
+    "GHY": 11.359999656677246,
+    "GOOGL": 274.3399963378906,
+    "GTMEY": 23.1200008392334,
+    "IFLN": 17.780000686645508,
+    "INTC": 43.130001068115234,
+    "JGLO": 63.36899948120117,
+    "JPLD": 52.12900161743164,
+    "JPM": 282.8399963378906,
+    "KBR": 37.0,
+    "KTB": 66.43000030517578,
+    "LBTYA": 11.970000267028809,
+    "LQDT": 29.489999771118164,
+    "META": 525.719970703125,
+    "MRSK": 34.70000076293945,
+    "MSFT": 356.7699890136719,
+    "NFRA": 62.810001373291016,
+    "NSIT": 65.81999969482422,
+    "NVDA": 167.52000427246094,
+    "NYF": 52.91999816894531,
+    "ONTF": 8.100000381469727,
+    "ORC": 6.869999885559082,
+    "OSPN": 10.149999618530273,
+    "PATH": 10.6899995803833,
+    "PCF": 5.489999771118164,
+    "PCG": 17.170000076293945,
+    "PCM": 5.53000020980835,
+    "PFFD": 18.309999465942383,
+    "PFGC": 83.01000213623047,
+    "PLTR": 143.05999755859375,
+    "RLGT": 6.849999904632568,
+    "RVSB": 5.519999980926514,
+    "SMG": 60.650001525878906,
+    "SPXS": 43.810001373291016,
+    "SSREY": 40.18000030517578,
+    "SWAN": 30.690000534057617,
+    "TAP": 43.400001525878906,
+    "TENX": 14.899999618530273,
+    "TFLR": 50.185001373291016,
+    "TLTW": 22.31999969482422,
+    "TOST": 25.639999389648438,
+    "TSLA": 361.8299865722656,
+    "TSN": 63.91999816894531,
+    "USSG": 58.0,
+    "VGSH": 58.40999984741211,
+    "VPU": 196.8800048828125,
+    "WANT": 33.20000076293945,
+    "XOMA": 30.170000076293945
   }
 }
