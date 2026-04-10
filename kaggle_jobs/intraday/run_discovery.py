@@ -334,15 +334,28 @@ def build_universe(trading_client: TradingClient):
 
 def send_telegram_alert(payload: dict):
     env_vars = {}
-    if os.path.exists(".env"):
-        with open('.env', 'r') as f:
-            for line in f:
-                if '=' in line and not line.strip().startswith('#'):
-                    key, val = line.strip().split('=', 1)
-                    env_vars[key.strip()] = val.strip().strip('"').strip("'")
-                    
-    bot_token = env_vars.get('TELEGRAM_BOT_TOKEN')
-    chat_id = env_vars.get('TELEGRAM_CHAT_ID')
+    
+    # Use python-dotenv to find .env correctly relative to script execution
+    try:
+        from dotenv import load_dotenv, find_dotenv
+        load_dotenv(find_dotenv(usecwd=True))
+    except ImportError:
+        # Fallback to pure python search if python-dotenv isn't available
+        current_dir = os.path.abspath(os.getcwd())
+        env_path = os.path.join(current_dir, ".env")
+        while not os.path.exists(env_path) and current_dir != os.path.dirname(current_dir):
+            current_dir = os.path.dirname(current_dir)
+            env_path = os.path.join(current_dir, ".env")
+            
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                for line in f:
+                    if '=' in line and not line.strip().startswith('#'):
+                        key, val = line.strip().split('=', 1)
+                        env_vars[key.strip()] = val.strip().strip('"').strip("'")
+                        
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN') or env_vars.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID') or env_vars.get('TELEGRAM_CHAT_ID')
     
     if not bot_token or not chat_id:
         print("Skipping Telegram alert: Credentials not found.")
@@ -391,18 +404,19 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
     
     if tracker: tracker.advance(1, phase=f"Downloaded data for {len(df_raw.columns)} valid stocks", force=True)
 
-    # V9 INTRADAY OPTIMIZATION: High Volatility + High RVOL
+    # V11 KINEMATIC OPTIMIZATION: High Volatility + High RVOL + High Price Impact
     returns = df_raw.pct_change().dropna()
     volatility = returns.std() * np.sqrt(252)
-    lower_bound = volatility.quantile(0.50) # Drop bottom 50% dead stocks
-    upper_bound = volatility.quantile(0.99) # Drop top 1% anomalies
+    # Tighter selection: Drop bottom 70% dead stocks (we only want extreme movers)
+    lower_bound = volatility.quantile(0.70) 
+    upper_bound = volatility.quantile(0.99) # Drop top 1% anomalies (untradeable halts)
     
     # RVOL Calculation
     vol_sma_20 = df_volume.rolling(20).mean()
     rvol_latest = (df_volume.iloc[-1] / vol_sma_20.iloc[-1]).fillna(1.0)
     
-    # Require decent RVOL (> 1.0) to even be considered a candidate
-    rvol_universe = rvol_latest[rvol_latest > 1.0].index.tolist()
+    # Require HIGH RVOL (> 1.5) to even be considered a candidate for micro-spikes
+    rvol_universe = rvol_latest[rvol_latest > 1.5].index.tolist()
     vol_universe = volatility[(volatility >= lower_bound) & (volatility <= upper_bound)].index.tolist()
     
     optimized_universe = list(set(rvol_universe) & set(vol_universe))
@@ -412,26 +426,32 @@ def run_discovery(raw_universe: list[str], tracker: ProgressTracker | None = Non
     df_opt = df_raw[optimized_universe]
 
     if tracker:
-        tracker.advance(1, phase=f"V9 Intraday: Filtered to {len(optimized_universe)} highly volatile/RVOL symbols", force=True)
+        tracker.advance(1, phase=f"V11 Kinematic: Filtered to {len(optimized_universe)} highly volatile/RVOL symbols", force=True)
         tracker.add_total(len(optimized_universe) * 2 + 3)
-        tracker.set_phase("Running Framework 9 causal discovery")
+        tracker.set_phase("Running Framework 11 causal discovery")
 
     # Fast causal threshold for intraday noise adaptation
     oracle = TitanOracle(df_opt, mi_threshold=0.015, max_lag=1, tracker=tracker)
     skeleton = oracle.build_skeleton()
     dag = oracle.orient_edges(skeleton)
 
-    if tracker: tracker.advance(1, phase="Preparing V9 Intraday node features", force=True)
+    if tracker: tracker.advance(1, phase="Preparing V11 Kinematic node features", force=True)
     node_features = {}
     for symbol in optimized_universe:
-        # V9 Intraday Features: Momentum + RVOL
+        # V11 Kinematic Features: True Price Impact instead of just momentum
+        price_diff = df_opt[symbol].diff().fillna(0)
+        price_impact = price_diff * df_volume[symbol]
+        
         momentum_1d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-2]) - 1
         momentum_5d = (df_opt[symbol].iloc[-1] / df_opt[symbol].iloc[-6]) - 1
-        vol_5d = df_opt[symbol].tail(5).pct_change().std()
+        
+        # Calculate recent Price Impact Velocity (Daily scale)
+        impact_sma_5 = price_impact.rolling(5).mean().iloc[-1]
+        
         rvol = rvol_latest.get(symbol, 1.0)
         
-        node_features[symbol] = [momentum_1d, momentum_5d, vol_5d, rvol]
-        if tracker: tracker.advance(1, phase="Preparing V9 Intraday node features")
+        node_features[symbol] = [momentum_1d, momentum_5d, impact_sma_5, rvol]
+        if tracker: tracker.advance(1, phase="Preparing V11 Kinematic node features")
 
     # Input dim upgraded from 3 to 4 for V9
     gnn_model = GraphDynamicsEngine(input_dim=4, hidden_dim=64, num_layers=3).to(DEVICE)
